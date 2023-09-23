@@ -16,6 +16,7 @@ interface ILiquidityPool is IERC20 {
     function asset() external view returns (IERC20);
     function maxBorrowRate() external view returns (int256);
     function ratio() external view returns (uint256);
+    function requestPayout(uint256) external;
 
     event Deposit(address indexed sender, uint256 assets, uint256 shares);
     event Redeem(address indexed sender, uint256 assets, uint256 shares);
