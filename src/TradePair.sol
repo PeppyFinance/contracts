@@ -13,8 +13,8 @@ contract TradePair is ITradePair {
     mapping(uint256 => Position) positions;
     uint256 nextId;
     IERC20 public collateralToken;
-    int256 borrowRate = 0.00001 * 1e6; // 0.001% per hour
-    uint256 liquidatorReward = 1 * 1e8; // Same decimals as collateral
+    int256 public borrowRate = 0.00001 * 1e6; // 0.001% per hour
+    uint256 public liquidatorReward = 1 * 1e8; // Same decimals as collateral
     IPriceFeed public priceFeed;
     ILiquidityPool public liquidityPool;
     uint256 public longOpenInterest;
@@ -77,7 +77,7 @@ contract TradePair is ITradePair {
             collateralToken.safeTransfer(msg.sender, value);
         } else {
             // Position is underwater. All collateral goes to LP
-            collateralToken.safeTransfer(msg.sender, position.collateral - value);
+            collateralToken.safeTransfer(address(liquidityPool), position.collateral);
         }
     }
 
@@ -133,7 +133,7 @@ contract TradePair is ITradePair {
 
     function _getPrice() internal view returns (int256) {
         int256 price = priceFeed.getPrice();
-        require(price > 0, "TradePair::_getCurrentPrice: Failed to fetch the current price.");
+        require(price > 0, "TradePair::_getPrice: Failed to fetch the current price.");
         return price;
     }
 
