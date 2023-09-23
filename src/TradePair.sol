@@ -5,19 +5,9 @@ import "openzeppelin/token/ERC20/IERC20.sol";
 import "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "src/interfaces/IPriceFeed.sol";
 import "src/interfaces/ILiquidityPool.sol";
+import "src/interfaces/ITradePair.sol";
 
-struct Position {
-    uint256 collateral;
-    int256 entryPrice;
-    uint256 entryTimestamp;
-    uint256 leverage; // 1e6 = 1x,
-    int256 borrowFeeIntegral;
-    int256 fundingFeeIntegral;
-    address owner;
-    int8 direction; // 1 for long, -1 for short
-}
-
-contract TradePair {
+contract TradePair is ITradePair {
     using SafeERC20 for IERC20;
 
     mapping(uint256 => Position) positions;
@@ -43,6 +33,7 @@ contract TradePair {
     }
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction) external {
+        updateFeeIntegrals();
         int256 entryPrice = _getPrice();
         positions[++nextId] = Position(
             collateral,
@@ -63,6 +54,7 @@ contract TradePair {
     }
 
     function closePosition(uint256 id) external {
+        updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner == msg.sender, "Only the owner can close the position");
         uint256 value = _getValue(id);
@@ -73,12 +65,15 @@ contract TradePair {
         }
         delete positions[id];
         if (value > 0) {
-            // Position is
+            // Position is not underwater.
             if (value > position.collateral) {
+                // Position is profitable.
                 liquidityPool.requestPayout(value - position.collateral);
             } else {
+                // Position is not profitable. Transfer PnL and fee to LP.
                 collateralToken.safeTransfer(address(liquidityPool), position.collateral - value);
             }
+            // In all cases, owner receives the (leftover) value.
             collateralToken.safeTransfer(msg.sender, value);
         } else {
             // Position is underwater. All collateral goes to LP
@@ -87,6 +82,7 @@ contract TradePair {
     }
 
     function liquidatePosition(uint256 id) external {
+        updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
         require(_getValue(id) <= 0, "Position is not liquidatable");
@@ -98,6 +94,25 @@ contract TradePair {
         delete positions[id];
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
+    }
+
+    function getPositionDetails(uint256 id) external view returns (PositionDetails memory) {
+        Position storage position = positions[id];
+        require(position.owner != address(0), "Position does not exist");
+        return PositionDetails(
+            id,
+            position.collateral,
+            position.entryPrice,
+            position.entryTimestamp,
+            position.leverage,
+            (borrowFeeIntegral - position.borrowFeeIntegral) * int256(position.collateral) * int256(position.leverage)
+                / 1e6 / 1 hours,
+            (fundingFeeIntegral - position.fundingFeeIntegral) * int256(position.collateral) * int256(position.leverage)
+                / 1e6 / 1 hours,
+            position.owner,
+            position.direction,
+            _getValue(id)
+        );
     }
 
     function _getValue(uint256 id) internal view returns (uint256) {
@@ -130,7 +145,7 @@ contract TradePair {
         }
     }
 
-    function updateFeeIntegrals() external {
+    function updateFeeIntegrals() public {
         fundingFeeIntegral += _calculateFundingRate() * int256(block.timestamp - lastUpdateTimestamp);
         borrowFeeIntegral += _calculateBorrowRate() * int256(block.timestamp - lastUpdateTimestamp);
         lastUpdateTimestamp = block.timestamp;
