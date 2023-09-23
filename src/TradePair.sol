@@ -74,4 +74,6 @@ contract TradePair {
         require(price > 0, "TradePair::_getCurrentPrice: Failed to fetch the current price.");
         return price;
     }
+
+    function
 }

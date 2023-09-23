@@ -60,8 +60,6 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         emit TradePairAdded(tradePair);
     }
 
-    /// @notice Removes a trade pair from the liquidity pool.
-    /// @param tradePair The address of the trade pair to remove.
     function removeTradePair(address tradePair) external {
         require(isTradePair[tradePair], "Trade pair not found.");
         isTradePair[tradePair] = false;
@@ -77,10 +75,6 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         return IERC20(asset).balanceOf(address(this));
     }
 
-    /**
-     * @notice Returns the ratio of shares to assets. This is the inverse of price.
-     * @return The ratio of shares to assets.
-     */
     function ratio() public view returns (uint256) {
         return totalSupply() / totalAssets();
     }
