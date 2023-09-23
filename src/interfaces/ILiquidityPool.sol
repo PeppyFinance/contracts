@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "openzeppelin/token/ERC20/IERC20.sol";
+import "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 
 interface ILiquidityPool is IERC20 {
     function redeem(uint256 shares) external;
@@ -10,7 +11,7 @@ interface ILiquidityPool is IERC20 {
     function totalAssets() external view returns (uint256);
 
     function setMaxBorrowRate(int256 rate) external;
-    function asset() external view returns (IERC20);
+    function asset() external view returns (IERC20Metadata);
     function maxBorrowRate() external view returns (int256);
     function ratio() external view returns (uint256);
     function requestPayout(uint256) external;

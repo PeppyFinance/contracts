@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.18;
 
+import "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import "openzeppelin/token/ERC20/ERC20.sol";
 import "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "src/interfaces/ILiquidityPool.sol";
 import "src/interfaces/ITradePair.sol";
 
 contract LiquidityPool is ERC20, ILiquidityPool {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Metadata;
 
-    IERC20 public asset;
+    IERC20Metadata public asset;
     int256 public maxBorrowRate; // Hourly
     ITradePair public tradePair;
 
@@ -20,12 +21,13 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         _;
     }
 
-    constructor(IERC20 asset_, ITradePair tradePair_) ERC20("Peppy Liquidity Pool Token", "PPT") {
+    constructor(IERC20Metadata asset_, ITradePair tradePair_) ERC20("Peppy Liquidity Pool Token", "PPT") {
         require(address(asset_) != address(0), "LiquidityPool::constructor: Invalid asset address.");
         asset = asset_;
+
         tradePair = tradePair_;
 
-        _ONE_LP = 10 ** decimals();
+        _ONE_LPT = 10 ** decimals();
     }
 
     function deposit(uint256 amount) external {
@@ -39,7 +41,7 @@ contract LiquidityPool is ERC20, ILiquidityPool {
 
         _updateFeeIntegrals();
 
-        emit Deposit(msg.sender, assets, shares);
+        emit Deposit(msg.sender, amount, shares);
     }
 
     function previewRedeem(uint256 shares) public view returns (uint256) {

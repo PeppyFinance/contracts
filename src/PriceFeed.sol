@@ -2,46 +2,45 @@
 pragma solidity ^0.8.18;
 
 import "src/interfaces/IPriceFeed.sol";
+import "pyth-sdk-solidity/IPyth.sol";
 
 contract PriceFeed is IPriceFeed {
 
-    uint256 public constant PRICE_PRECISION = 1e18;
+    IPyth pyth;
+    int256 public constant PRICE_PRECISION = 1e18;
 
     mapping(address => bytes32) public priceIds;
 
-    constructor() {}
-
-    function setPriceFeed(address _token, bytes32 _priceId) external {
-      priceIds[_token] = _priceId;
+    constructor(address _pyth) {
+        pyth = IPyth(_pyth);
     }
 
-    function getPrice(address _token, bytes[] memory _priceUpdateData) external payable override returns (uint256) {
-      return _getNormalizedPrice(priceIds[_token], _priceUpdateData);
+    function setPriceFeed(address _token, bytes32 _priceId) external override {
+        priceIds[_token] = _priceId;
     }
 
-    function _getNormalizedPrice(bytes32 _priceId, bytes[] memory _priceUpdateData) private payable returns (uint256) {
-      PythStructs.Price memory priceStruct = _getPythPriceStruct(_priceId, _priceUpdateData);
-
-      int32 expo = priceStruct.expo;
-      int64 price = priceStruct.price;
-
-      if (price < 0) {
-        // TODO: price might actually be negative and validly so
-        revert('VaultPriceFeed: oracle price is negative.');
-      }
-      if (expo > 0) {
-        // TODO: might not be appropriate to handle it like this
-        revert('VaultPriceFeed: exponent is not negative.');
-      }
-
-      return (uint256(price) * PRICE_PRECISION) / 10 ** uint256(-expo);
+    function getPrice(address _token, bytes[] memory _updateData) external payable override returns (int256) {
+        PythStructs.Price memory price = _getPrice(priceIds[_token], _updateData);
+        return _normalize(price);
     }
 
-    function _getPythPriceStruct(bytes32 _priceId, bytes[] memory _priceUpdateData) private payable returns (PythStructs.Price memory) {
-      uint fee = pyth.getUpdateFee(_priceUpdateData);
-      pyth.updatePriceFeeds{value: fee}(_priceUpdateData);
+    function _normalize(PythStructs.Price memory price) internal pure returns (int256) {
+        int32 expo = price.expo;
+        int64 priceVal = price.price;
 
-      // TODO: perhaps use getPriceNoOlderThan
-      return pyth.getPrice(_priceId);
+        require(priceVal >= 0, 'PriceFeed: oracle price is negative.');
+        require(expo <= 0, 'PriceFeed: exponent is not negative.');
+
+        uint256 absoluteExpo = uint256(-int256(expo)); // Convert to positive uint256
+        int256 normalizedPrice = (priceVal * PRICE_PRECISION) / int256(10 ** absoluteExpo);
+
+        return normalizedPrice;
+    }
+
+    function _getPrice(bytes32 _priceId, bytes[] memory _updateData) internal returns (PythStructs.Price memory) {
+        uint fee = pyth.getUpdateFee(_updateData);
+        pyth.updatePriceFeeds{value: fee}(_updateData);
+
+        return pyth.getPrice(_priceId);
     }
 }

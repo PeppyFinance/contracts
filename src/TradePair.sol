@@ -32,9 +32,9 @@ contract TradePair is ITradePair {
         priceFeed = _priceFeed;
     }
 
-    function openPosition(uint256 collateral, uint256 leverage, int8 direction) external {
+    function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData) external payable {
         updateFeeIntegrals();
-        int256 entryPrice = _getPrice();
+        int256 entryPrice = _getPrice(_priceUpdateData);
         positions[++nextId] = Position(
             collateral,
             entryPrice,
@@ -53,11 +53,11 @@ contract TradePair is ITradePair {
         collateralToken.safeTransferFrom(msg.sender, address(this), collateral);
     }
 
-    function closePosition(uint256 id) external {
+    function closePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
         updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner == msg.sender, "Only the owner can close the position");
-        uint256 value = _getValue(id);
+        uint256 value = _getValue(id, _getPrice(_priceUpdateData));
         if (position.direction == 1) {
             longOpenInterest -= position.collateral * position.leverage / 1e6;
         } else {
@@ -81,11 +81,11 @@ contract TradePair is ITradePair {
         }
     }
 
-    function liquidatePosition(uint256 id) external {
+    function liquidatePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
         updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
-        require(_getValue(id) <= 0, "Position is not liquidatable");
+        require(_getValue(id, _getPrice(_priceUpdateData)) <= 0, "Position is not liquidatable");
         if (position.direction == 1) {
             longOpenInterest -= position.collateral * position.leverage / 1e6;
         } else {
@@ -96,7 +96,7 @@ contract TradePair is ITradePair {
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
     }
 
-    function getPositionDetails(uint256 id) external view returns (PositionDetails memory) {
+    function getPositionDetails(uint256 id, int256 price) external view returns (PositionDetails memory) {
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
         return PositionDetails(
@@ -111,14 +111,13 @@ contract TradePair is ITradePair {
                 / 1e6 / 1 hours,
             position.owner,
             position.direction,
-            _getValue(id)
+            _getValue(id, price)
         );
     }
 
-    function _getValue(uint256 id) internal view returns (uint256) {
+    function _getValue(uint256 id, int256 price) internal view returns (uint256) {
         Position storage position = positions[id];
-        int256 currentPrice = _getPrice();
-        int256 profit = (currentPrice - position.entryPrice) * int256(position.leverage) * int256(position.collateral)
+        int256 profit = (price - position.entryPrice) * int256(position.leverage) * int256(position.collateral)
             * position.direction / position.entryPrice / 1e6;
         int256 borrowFee = (borrowFeeIntegral - position.borrowFeeIntegral) * int256(position.collateral)
             * int256(position.leverage) / 1e6 / 1 hours;
@@ -131,8 +130,8 @@ contract TradePair is ITradePair {
         return uint256(value);
     }
 
-    function _getPrice() internal view returns (int256) {
-        int256 price = priceFeed.getPrice();
+    function _getPrice(bytes[] memory _priceUpdateData) internal returns (int256) {
+        int256 price = priceFeed.getPrice(address(liquidityPool.asset()), _priceUpdateData);
         require(price > 0, "TradePair::_getPrice: Failed to fetch the current price.");
         return price;
     }
