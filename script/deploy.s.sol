@@ -8,7 +8,7 @@ import "../src/PriceFeed.sol";
 import "../src/TradePair.sol";
 import "../src/FaucetToken.sol";
 
-contract DeployScript is Script {
+contract Deploy is Script {
     function run() external {
         // TODO: probably best to use different method without revealing priv key :D
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -24,7 +24,7 @@ contract DeployScript is Script {
         PriceFeed priceFeed = new PriceFeed(pythAddr);
         TradePair tradePair = new TradePair(collateralToken, priceFeed);
 
-        LiquidityPool liquidityPool = new LiquidityPool(_asset, tradePair);
+        new LiquidityPool(_asset, tradePair);
 
         // TODO: print addresses
 
