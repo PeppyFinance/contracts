@@ -10,13 +10,17 @@ import "src/interfaces/ITradePair.sol";
 contract TradePair is ITradePair {
     using SafeERC20 for IERC20;
 
+    uint256 private _nextId;
+
     mapping(uint256 => Position) positions;
-    uint256 nextId;
+
     IERC20 public collateralToken;
     int256 public borrowRate = 0.00001 * 1e6; // 0.001% per hour
     uint256 public liquidatorReward = 1 * 1e8; // Same decimals as collateral
+
     IPriceFeed public priceFeed;
     ILiquidityPool public liquidityPool;
+
     uint256 public longOpenInterest;
     uint256 public shortOpenInterest;
 
@@ -35,7 +39,8 @@ contract TradePair is ITradePair {
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData) external payable {
         updateFeeIntegrals();
         int256 entryPrice = _getPrice(_priceUpdateData);
-        positions[++nextId] = Position(
+        uint256 id = ++_nextId;
+        positions[id] = Position(
             collateral,
             entryPrice,
             block.timestamp,
@@ -51,6 +56,8 @@ contract TradePair is ITradePair {
             shortOpenInterest += collateral * leverage / 1e6;
         }
         collateralToken.safeTransferFrom(msg.sender, address(this), collateral);
+
+        emit PositionOpened(msg.sender, id, entryPrice, leverage, direction);
     }
 
     function closePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
@@ -79,6 +86,8 @@ contract TradePair is ITradePair {
             // Position is underwater. All collateral goes to LP
             collateralToken.safeTransfer(address(liquidityPool), position.collateral);
         }
+
+        emit PositionClosed(position.owner, id, value);
     }
 
     function liquidatePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
@@ -94,6 +103,8 @@ contract TradePair is ITradePair {
         delete positions[id];
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
+
+        emit PositionLiquidated(position.owner, id);
     }
 
     function getPositionDetails(uint256 id, int256 price) external view returns (PositionDetails memory) {
