@@ -12,7 +12,11 @@ contract TradePair is ITradePair {
 
     uint256 private _nextId;
 
-    mapping(uint256 => Position) positions;
+    mapping(uint256 => Position) public positions;
+    mapping(address => uint256[]) public userPositionIds;
+
+    // needed for efficient deletion of positions in userPositionIds array
+    mapping(address => mapping(uint256 => uint256)) private userPositionIndex;
 
     IERC20 public collateralToken;
     int256 public borrowRate = 0.00001 * 1e6; // 0.001% per hour
@@ -40,6 +44,7 @@ contract TradePair is ITradePair {
         updateFeeIntegrals();
         int256 entryPrice = _getPrice(_priceUpdateData);
         uint256 id = ++_nextId;
+
         positions[id] = Position(
             collateral,
             entryPrice,
@@ -50,6 +55,9 @@ contract TradePair is ITradePair {
             msg.sender,
             direction
         );
+        userPositionIds[msg.sender].push(id);
+        userPositionIndex[msg.sender][id] = userPositionIds[msg.sender].length - 1;
+
         if (direction == 1) {
             longOpenInterest += collateral * leverage / 1e6;
         } else {
@@ -70,7 +78,9 @@ contract TradePair is ITradePair {
         } else {
             shortOpenInterest -= position.collateral * position.leverage / 1e6;
         }
-        delete positions[id];
+
+        _dropPosition(id, position.owner);
+
         if (value > 0) {
             // Position is not underwater.
             if (value > position.collateral) {
@@ -100,14 +110,16 @@ contract TradePair is ITradePair {
         } else {
             shortOpenInterest -= position.collateral * position.leverage / 1e6;
         }
-        delete positions[id];
+
+        _dropPosition(id, position.owner);
+
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
         emit PositionLiquidated(position.owner, id);
     }
 
-    function getPositionDetails(uint256 id, int256 price) external view returns (PositionDetails memory) {
+    function getPositionDetails(uint256 id, int256 price) public view returns (PositionDetails memory) {
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
         return PositionDetails(
@@ -124,6 +136,28 @@ contract TradePair is ITradePair {
             position.direction,
             _getValue(id, price)
         );
+    }
+
+    function getUserPositionsCount(address user) external view returns (uint256) {
+        return userPositionIds[user].length;
+    }
+
+    function getUserPositionByIndex(address user, uint256 index, int256 price) external view returns (PositionDetails memory) {
+        return getPositionDetails(userPositionIds[user][index], price);
+    }
+
+    function _dropPosition(uint256 id, address owner) internal {
+        uint256 indexToDelete = userPositionIndex[owner][id];
+        uint256 lastIndex = userPositionIds[owner].length - 1;
+        uint256 lastId = userPositionIds[owner][lastIndex];
+
+        // override item to be removed with last item and remove last item
+        userPositionIds[owner][indexToDelete] = lastId;
+        userPositionIndex[owner][lastId] = indexToDelete;
+        userPositionIds[owner].pop();
+
+        delete userPositionIndex[owner][id];
+        delete positions[id];
     }
 
     function _getValue(uint256 id, int256 price) internal view returns (uint256) {
