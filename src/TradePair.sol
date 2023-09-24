@@ -35,8 +35,8 @@ contract TradePair is ITradePair {
     int256 public maxFundingRate; // 1e18
     int256 public maxRelativeSkew; // 1e18
 
-    constructor(address _collateralToken, IPriceFeed _priceFeed) {
-        collateralToken = IERC20(_collateralToken);
+    constructor(IERC20 _collateralToken, IPriceFeed _priceFeed) {
+        collateralToken = _collateralToken;
         priceFeed = _priceFeed;
     }
 
