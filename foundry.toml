@@ -2,9 +2,3 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-
-[rpc_endpoints]
-shimmer = "${SHIMMER_RPC_URL}"
-
-[etherscan]
-shimmer = { key = "${ETHERSCAN_API_KEY}" }

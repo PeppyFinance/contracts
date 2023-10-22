@@ -8,6 +8,18 @@
 - FaucetToken (fake Stablecoin for collateral): [0xdAe024AD7eeE95ceC83F4df5C5DB06A8298b550E](https://explorer.evm.testnet.shimmer.network/address/0xdAe024AD7eeE95ceC83F4df5C5DB06A8298b550E)
 - FaucetToken (fake Ethereum, only used for address): [0x8367300Db88A504Cef44c02d72740f2763eC6e9A](https://explorer.evm.testnet.shimmer.network/address/0x8367300Db88A504Cef44c02d72740f2763eC6e9A)
 
+For local development make sure to add an `.env` and add the following env vars:
+
+```bash
+RPC_URL=http://localhost:8545/
+PRIVATE_KEY=my-priv-key
+PUBLIC_ADDR=my-pub-key
+PYTH_ADDR=pyth-addr
+```
+
+And run `anvil` with the `--fork-url` flag and specify which chain should be forked. It is then important
+to match `PYTH_ADDR` with the actual address on the forked chain.
+
 ## Documentation
 
 ### TradePair Contract
