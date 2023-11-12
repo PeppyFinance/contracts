@@ -76,7 +76,7 @@ contract TradePair is ITradePair {
 
         liquidityPool.asset().safeTransferFrom(msg.sender, address(this), collateral);
 
-        emit PositionOpened(msg.sender, id, index, entryPrice, leverage, direction);
+        emit PositionOpened(msg.sender, id, index, entryPrice, collateral, leverage, direction);
     }
 
     function closePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
