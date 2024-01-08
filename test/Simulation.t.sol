@@ -29,10 +29,15 @@ contract Simulation is Test {
 
     function test_redeem() public {
         _deposit(ALICE, 1000 ether);
-        vm.startPrank(ALICE);
-        liquidityPool.redeem(500 ether);
+        _redeem(ALICE, 500 ether);
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 500 ether);
         assertEq(liquidityPool.balanceOf(ALICE), 500 ether);
+    }
+
+    function _redeem(address trader, uint256 amount) internal {
+        vm.startPrank(trader);
+        liquidityPool.redeem(amount);
+        vm.stopPrank();
     }
 
     function _deposit(address trader, uint256 amount) internal {
