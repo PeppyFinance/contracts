@@ -54,7 +54,9 @@ contract LiquidityPool is ERC20, ILiquidityPool {
 
     function previewDeposit(uint256 assets) public view returns (uint256) {
         uint256 supply = totalSupply();
-        return (assets > 0 && supply > 0) ? (assets * supply) / totalAssets() : (assets * _ONE_LPT) / asset.decimals();
+        return (assets > 0 && supply > 0)
+            ? (assets * supply) / totalAssets()
+            : (assets * _ONE_LPT) / (10 ** asset.decimals());
     }
 
     function redeem(uint256 shares) external {
@@ -87,6 +89,6 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     }
 
     function _updateFeeIntegrals() internal {
-        tradePair.updateFeeIntegrals();
+        // tradePair.updateFeeIntegrals();
     }
 }
