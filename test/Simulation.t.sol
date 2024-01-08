@@ -22,11 +22,23 @@ contract Simulation is Test {
     }
 
     function test_deposit() public {
-        deal(address(collateralToken), ALICE, 1000 ether);
-        vm.startPrank(ALICE);
-        collateralToken.approve(address(liquidityPool), 1000 ether);
-        liquidityPool.deposit(1000 ether);
+        _deposit(ALICE, 1000 ether);
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether);
         assertEq(liquidityPool.balanceOf(ALICE), 1000 ether);
+        _printStats();
+    }
+
+    function _deposit(address trader, uint256 amount) internal {
+        deal(address(collateralToken), trader, amount);
+        vm.startPrank(trader);
+        collateralToken.approve(address(liquidityPool), amount);
+        liquidityPool.deposit(amount);
+        vm.stopPrank();
+    }
+
+    function _printStats() internal {
+        emit log_named_uint("longOpenInterest", tradePair.longOpenInterest());
+        emit log_named_uint("shortOpenInterest", tradePair.shortOpenInterest());
+        emit log_named_uint("lastUpdateTimestamp", tradePair.lastUpdateTimestamp());
     }
 }
