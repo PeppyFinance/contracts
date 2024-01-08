@@ -37,8 +37,9 @@ contract Simulation is Test {
     }
 
     function _printStats() internal {
-        emit log_named_uint("longOpenInterest", tradePair.longOpenInterest());
-        emit log_named_uint("shortOpenInterest", tradePair.shortOpenInterest());
-        emit log_named_uint("lastUpdateTimestamp", tradePair.lastUpdateTimestamp());
+        emit log_named_decimal_uint("alice collateral balance", collateralToken.balanceOf(ALICE), 18);
+        emit log_named_decimal_uint("alice lp balance", liquidityPool.balanceOf(ALICE), 18);
+        emit log_named_decimal_uint("lp assets", collateralToken.balanceOf(address(liquidityPool)), 18);
+        emit log_named_decimal_uint("lp total supply", liquidityPool.totalSupply(), 18);
     }
 }
