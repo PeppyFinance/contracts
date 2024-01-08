@@ -25,7 +25,14 @@ contract Simulation is Test {
         _deposit(ALICE, 1000 ether);
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether);
         assertEq(liquidityPool.balanceOf(ALICE), 1000 ether);
-        _logState();
+    }
+
+    function test_redeem() public {
+        _deposit(ALICE, 1000 ether);
+        vm.startPrank(ALICE);
+        liquidityPool.redeem(500 ether);
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 500 ether);
+        assertEq(liquidityPool.balanceOf(ALICE), 500 ether);
     }
 
     function _deposit(address trader, uint256 amount) internal {
@@ -58,7 +65,7 @@ contract Simulation is Test {
             if (i < inputBytes.length) {
                 padded[i] = inputBytes[i];
             } else {
-                padded[i] = 0x20; // ASCII code for space
+                padded[i] = 0x20; // AS II code for space
             }
         }
 
