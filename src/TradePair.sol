@@ -24,7 +24,7 @@ contract TradePair is ITradePair {
 
     IERC20 public collateralToken;
     int256 public borrowRate = 0.00001 * 1e6; // 0.001% per hour
-    uint256 public liquidatorReward = 1 * 1e8; // Same decimals as collateral
+    uint256 public liquidatorReward = 1 * 1e18; // Same decimals as collateral
 
     IController public controller;
     IPriceFeed public priceFeed;
@@ -116,7 +116,7 @@ contract TradePair is ITradePair {
     }
 
     function liquidatePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
-        updateFeeIntegrals();
+        // updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
         require(_getValue(id, _getPrice(_priceUpdateData)) <= 0, "Position is not liquidatable");
@@ -126,11 +126,10 @@ contract TradePair is ITradePair {
             shortOpenInterest -= position.collateral * position.leverage / 1e6;
         }
 
-        _dropPosition(id, position.owner);
-
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
+        _dropPosition(id, position.owner);
         emit PositionLiquidated(position.owner, id);
     }
 

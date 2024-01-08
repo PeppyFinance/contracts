@@ -87,6 +87,28 @@ contract Simulation is Test {
         assertEq(tradePair.shortOpenInterest(), 0 ether, "short open interest");
     }
 
+    function test_closePosition_Liquidation() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        // decrease price by 50%
+        _setPrice(address(collateralToken), 500 ether);
+        _liquidatePosition(1);
+
+        // Bob should have lost everything
+        assertEq(collateralToken.balanceOf(BOB), 0 ether, "bob collateral balance");
+        assertEq(
+            collateralToken.balanceOf(address(liquidityPool)), 1100 ether - tradePair.liquidatorReward(), "lp assets"
+        );
+        assertEq(collateralToken.balanceOf(address(tradePair)), 0, "traderPair assets");
+        assertEq(collateralToken.balanceOf(address(this)), tradePair.liquidatorReward(), "traderPair assets");
+        assertEq(liquidityPool.balanceOf(ALICE), 1000 ether, "alice lp balance");
+        assertEq(liquidityPool.previewRedeem(1000 ether), 1100 ether - tradePair.liquidatorReward(), "alice redeemable");
+        assertEq(tradePair.longOpenInterest(), 0 ether, "long open interest");
+        assertEq(tradePair.shortOpenInterest(), 0 ether, "short open interest");
+    }
+
     // Helper functions
 
     function _setPrice(address token, int256 price) internal {
@@ -120,6 +142,10 @@ contract Simulation is Test {
         vm.startPrank(trader);
         tradePair.closePosition(id, new bytes[](0));
         vm.stopPrank();
+    }
+
+    function _liquidatePosition(uint256 id) internal {
+        tradePair.liquidatePosition(id, new bytes[](0));
     }
 
     function _logState() internal {
