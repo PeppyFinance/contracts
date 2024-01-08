@@ -6,23 +6,27 @@ import "openzeppelin/token/ERC20/ERC20.sol";
 import "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "src/interfaces/ILiquidityPool.sol";
 import "src/interfaces/ITradePair.sol";
+import "src/interfaces/IController.sol";
 
 contract LiquidityPool is ERC20, ILiquidityPool {
     using SafeERC20 for IERC20Metadata;
 
     IERC20Metadata public asset;
     int256 public maxBorrowRate; // Hourly
+    IController public controller;
     ITradePair public tradePair;
 
     uint256 private immutable _ONE_LPT;
 
     modifier onlyTradePair() {
-        require(msg.sender == address(tradePair), "LiquidityPool::onlyTradePair: Invalid trade pair.");
+        require(controller.isTradePair(msg.sender), "LiquidityPool::onlyTradePair: Invalid trade pair.");
         _;
     }
 
-    constructor(IERC20Metadata asset_) ERC20("Peppy Liquidity Pool Token", "PPT") {
+    constructor(IController controller_, IERC20Metadata asset_) ERC20("Peppy Liquidity Pool Token", "PPT") {
+        require(address(controller_) != address(0), "LiquidityPool::constructor: Invalid controller address.");
         require(address(asset_) != address(0), "LiquidityPool::constructor: Invalid asset address.");
+        controller = controller_;
         asset = asset_;
 
         _ONE_LPT = 10 ** decimals();

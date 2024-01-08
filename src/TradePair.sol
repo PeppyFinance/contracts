@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import "openzeppelin/token/ERC20/IERC20.sol";
 import "openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import "src/interfaces/IController.sol";
 import "src/interfaces/IPriceFeed.sol";
 import "src/interfaces/ILiquidityPool.sol";
 import "src/interfaces/ITradePair.sol";
@@ -22,6 +23,7 @@ contract TradePair is ITradePair {
     int256 public borrowRate = 0.00001 * 1e6; // 0.001% per hour
     uint256 public liquidatorReward = 1 * 1e8; // Same decimals as collateral
 
+    IController public controller;
     IPriceFeed public priceFeed;
     ILiquidityPool public liquidityPool;
 
@@ -35,7 +37,13 @@ contract TradePair is ITradePair {
     int256 public maxFundingRate; // 1e18
     int256 public maxRelativeSkew; // 1e18
 
-    constructor(IERC20 _collateralToken, IPriceFeed _priceFeed, ILiquidityPool _liquidityPool) {
+    constructor(
+        IController _controller,
+        IERC20 _collateralToken,
+        IPriceFeed _priceFeed,
+        ILiquidityPool _liquidityPool
+    ) {
+        controller = _controller;
         collateralToken = _collateralToken;
         priceFeed = _priceFeed;
         liquidityPool = _liquidityPool;
@@ -73,9 +81,9 @@ contract TradePair is ITradePair {
     }
 
     function closePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
-        updateFeeIntegrals();
+        // updateFeeIntegrals();
         Position storage position = positions[id];
-        require(position.owner == msg.sender, "Only the owner can close the position");
+        require(position.owner == msg.sender, "TradePair::closePosition: Only the owner can close the position");
         uint256 value = _getValue(id, _getPrice(_priceUpdateData));
         if (position.direction == 1) {
             longOpenInterest -= position.collateral * position.leverage / 1e6;
@@ -83,12 +91,11 @@ contract TradePair is ITradePair {
             shortOpenInterest -= position.collateral * position.leverage / 1e6;
         }
 
-        _dropPosition(id, position.owner);
-
         if (value > 0) {
             // Position is not underwater.
             if (value > position.collateral) {
                 // Position is profitable.
+
                 liquidityPool.requestPayout(value - position.collateral);
             } else {
                 // Position is not profitable. Transfer PnL and fee to LP.
@@ -101,6 +108,7 @@ contract TradePair is ITradePair {
             collateralToken.safeTransfer(address(liquidityPool), position.collateral);
         }
 
+        _dropPosition(id, position.owner);
         emit PositionClosed(position.owner, id, value);
     }
 
