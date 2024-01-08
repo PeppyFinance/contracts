@@ -21,11 +21,9 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         _;
     }
 
-    constructor(IERC20Metadata asset_, ITradePair tradePair_) ERC20("Peppy Liquidity Pool Token", "PPT") {
+    constructor(IERC20Metadata asset_) ERC20("Peppy Liquidity Pool Token", "PPT") {
         require(address(asset_) != address(0), "LiquidityPool::constructor: Invalid asset address.");
         asset = asset_;
-
-        tradePair = tradePair_;
 
         _ONE_LPT = 10 ** decimals();
     }

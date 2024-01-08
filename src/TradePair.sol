@@ -35,13 +35,17 @@ contract TradePair is ITradePair {
     int256 public maxFundingRate; // 1e18
     int256 public maxRelativeSkew; // 1e18
 
-    constructor(IERC20 _collateralToken, IPriceFeed _priceFeed) {
+    constructor(IERC20 _collateralToken, IPriceFeed _priceFeed, ILiquidityPool _liquidityPool) {
         collateralToken = _collateralToken;
         priceFeed = _priceFeed;
+        liquidityPool = _liquidityPool;
     }
 
-    function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData) external payable {
-        updateFeeIntegrals();
+    function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
+        external
+        payable
+    {
+        // updateFeeIntegrals();
         int256 entryPrice = _getPrice(_priceUpdateData);
         uint256 id = ++_nextId;
 
@@ -142,7 +146,11 @@ contract TradePair is ITradePair {
         return userPositionIds[user].length;
     }
 
-    function getUserPositionByIndex(address user, uint256 index, int256 price) external view returns (PositionDetails memory) {
+    function getUserPositionByIndex(address user, uint256 index, int256 price)
+        external
+        view
+        returns (PositionDetails memory)
+    {
         return getPositionDetails(userPositionIds[user][index], price);
     }
 

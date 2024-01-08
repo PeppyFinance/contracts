@@ -25,16 +25,20 @@ struct PositionDetails {
     uint256 value;
 }
 
-
 interface ITradePair {
     event PositionOpened(address indexed owner, uint256 id, int256 entryPrice, uint256 leverage, int8 direction);
     event PositionClosed(address indexed owner, uint256 id, uint256 value);
     event PositionLiquidated(address indexed owner, uint256 id);
 
-    function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData) external payable;
+    function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
+        external
+        payable;
     function closePosition(uint256 id, bytes[] memory _priceUpdateData) external payable;
     function liquidatePosition(uint256 id, bytes[] memory _priceUpdateData) external payable;
-    function getUserPositionByIndex(address user, uint256 index, int256 price) external view returns (PositionDetails memory);
+    function getUserPositionByIndex(address user, uint256 index, int256 price)
+        external
+        view
+        returns (PositionDetails memory);
     function excessOpenInterest() external view returns (uint256);
     function updateFeeIntegrals() external;
 }

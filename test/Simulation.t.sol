@@ -17,8 +17,8 @@ contract Simulation is Test {
     function setUp() public {
         collateralToken = new ERC20("Collateral", "COLL");
         priceFeed = new MockPriceFeed();
-        tradePair = new TradePair(collateralToken, priceFeed);
-        liquidityPool = new LiquidityPool(collateralToken, tradePair);
+        liquidityPool = new LiquidityPool(collateralToken);
+        tradePair = new TradePair(collateralToken, priceFeed, liquidityPool);
     }
 
     function test_deposit() public {
@@ -34,6 +34,22 @@ contract Simulation is Test {
         assertEq(liquidityPool.balanceOf(ALICE), 500 ether);
     }
 
+    function test_openPosition() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "lp assets");
+        assertEq(liquidityPool.balanceOf(ALICE), 1000 ether, "alice lp balance");
+        assertEq(tradePair.longOpenInterest(), 500 ether, "long open interest");
+        assertEq(tradePair.shortOpenInterest(), 0 ether, "short open interest");
+    }
+
+    // Helper functions
+
+    function _setPrice(address token, int256 price) internal {
+        priceFeed.setPrice(token, price);
+    }
+
     function _redeem(address trader, uint256 amount) internal {
         vm.startPrank(trader);
         liquidityPool.redeem(amount);
@@ -45,6 +61,15 @@ contract Simulation is Test {
         vm.startPrank(trader);
         collateralToken.approve(address(liquidityPool), amount);
         liquidityPool.deposit(amount);
+        vm.stopPrank();
+    }
+
+    function _openPosition(address trader, uint256 collateral, int8 direction, uint256 leverage) internal {
+        deal(address(collateralToken), trader, collateral);
+
+        vm.startPrank(trader);
+        collateralToken.approve(address(tradePair), collateral);
+        tradePair.openPosition(collateral, leverage, direction, new bytes[](0));
         vm.stopPrank();
     }
 

@@ -22,9 +22,8 @@ contract Deploy is Script {
         FaucetToken _asset = new FaucetToken("fake ETH", "fakeETH");
 
         PriceFeed priceFeed = new PriceFeed(pythAddr);
-        TradePair tradePair = new TradePair(collateralToken, priceFeed);
-
-        new LiquidityPool(_asset, tradePair);
+        LiquidityPool liquidityPool = new LiquidityPool(_asset);
+        new TradePair(collateralToken, priceFeed, liquidityPool);
 
         // TODO: print addresses
 
