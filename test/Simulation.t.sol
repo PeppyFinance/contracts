@@ -109,6 +109,28 @@ contract Simulation is Test {
         assertEq(tradePair.shortOpenInterest(), 0 ether, "short open interest");
     }
 
+    function test_frontrun_traderLoss() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        // Now bobs position is nearly liquidatable
+        _setPrice(address(collateralToken), 801 ether);
+        // Alice's shares are still worth 1000 ether
+        assertEq(liquidityPool.previewRedeem(1000 ether), 1000 ether, "alice redeemable");
+        // Dan frontruns
+        _deposit(DAN, 1000 ether);
+        // position gets liquidated
+        _setPrice(address(collateralToken), 800 ether);
+        _liquidatePosition(1);
+        // Dan withdraws
+        _redeem(DAN, 1000 ether);
+        // Dan made a fast profit
+        assertEq(collateralToken.balanceOf(DAN), 1049.5 ether, "dan collateral balance");
+        // Alice only got half of the profit
+        assertEq(liquidityPool.previewRedeem(1000 ether), 1049.5 ether, "alice redeemable");
+    }
+
     // Helper functions
 
     function _setPrice(address token, int256 price) internal {
