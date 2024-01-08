@@ -25,7 +25,7 @@ contract Simulation is Test {
         _deposit(ALICE, 1000 ether);
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether);
         assertEq(liquidityPool.balanceOf(ALICE), 1000 ether);
-        _printStats();
+        _logState();
     }
 
     function _deposit(address trader, uint256 amount) internal {
@@ -36,10 +36,32 @@ contract Simulation is Test {
         vm.stopPrank();
     }
 
-    function _printStats() internal {
-        emit log_named_decimal_uint("alice collateral balance", collateralToken.balanceOf(ALICE), 18);
-        emit log_named_decimal_uint("alice lp balance", liquidityPool.balanceOf(ALICE), 18);
-        emit log_named_decimal_uint("lp assets", collateralToken.balanceOf(address(liquidityPool)), 18);
-        emit log_named_decimal_uint("lp total supply", liquidityPool.totalSupply(), 18);
+    function _logState() internal {
+        emit log_named_decimal_uint(
+            padStringToLength("alice collateral balance", 30), collateralToken.balanceOf(ALICE), 18
+        );
+        emit log_named_decimal_uint(padStringToLength("alice lp balance", 30), liquidityPool.balanceOf(ALICE), 18);
+        emit log_named_decimal_uint(
+            padStringToLength("lp assets", 30), collateralToken.balanceOf(address(liquidityPool)), 18
+        );
+        emit log_named_decimal_uint(padStringToLength("lp total supply", 30), liquidityPool.totalSupply(), 18);
+    }
+
+    function padStringToLength(string memory input, uint256 X) internal pure returns (string memory) {
+        bytes memory inputBytes = bytes(input);
+        if (inputBytes.length >= X) {
+            return input;
+        }
+
+        bytes memory padded = new bytes(X);
+        for (uint256 i = 0; i < X; i++) {
+            if (i < inputBytes.length) {
+                padded[i] = inputBytes[i];
+            } else {
+                padded[i] = 0x20; // ASCII code for space
+            }
+        }
+
+        return string(padded);
     }
 }
