@@ -8,6 +8,9 @@ import "src/interfaces/IPriceFeed.sol";
 import "src/interfaces/ILiquidityPool.sol";
 import "src/interfaces/ITradePair.sol";
 
+// import console
+import "forge-std/console2.sol";
+
 contract TradePair is ITradePair {
     using SafeERC20 for IERC20;
 

@@ -68,6 +68,25 @@ contract Simulation is Test {
         assertEq(tradePair.shortOpenInterest(), 0 ether, "short open interest");
     }
 
+    function test_closePosition_Loss() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        // decrease price by 10%
+        _setPrice(address(collateralToken), 900 ether);
+        _closePosition(BOB, 1);
+
+        // Bob should have lost 50
+        assertEq(collateralToken.balanceOf(BOB), 50 ether, "bob collateral balance");
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 1050 ether, "lp assets");
+        assertEq(collateralToken.balanceOf(address(tradePair)), 0, "traderPair assets");
+        assertEq(liquidityPool.balanceOf(ALICE), 1000 ether, "alice lp balance");
+        assertEq(liquidityPool.previewRedeem(1000 ether), 1050 ether, "alice redeemable");
+        assertEq(tradePair.longOpenInterest(), 0 ether, "long open interest");
+        assertEq(tradePair.shortOpenInterest(), 0 ether, "short open interest");
+    }
+
     // Helper functions
 
     function _setPrice(address token, int256 price) internal {
