@@ -1,14 +1,14 @@
 # Peppy Finance Smart Contracts
 
-## Deployment
+## Installation
 
-- TradePair: [0xFA4DE5e7dfb2bD60C6Fda0f5D575b5F3F9F2e9Ac](https://explorer.evm.testnet.shimmer.network/address/0xFA4DE5e7dfb2bD60C6Fda0f5D575b5F3F9F2e9Ac)
-- LiquidityPool: [0xB66C2A973a97EBbC03d2b089792dd8A7baab91F9](https://explorer.evm.testnet.shimmer.network/address/0xB66C2A973a97EBbC03d2b089792dd8A7baab91F9)
-- PriceFeed: [0x6B514aB4eD47Ac370e5595f09752BB224e9Af5fF](https://explorer.evm.testnet.shimmer.network/address/0x6B514aB4eD47Ac370e5595f09752BB224e9Af5fF)
-- FaucetToken (fake Stablecoin for collateral): [0xdAe024AD7eeE95ceC83F4df5C5DB06A8298b550E](https://explorer.evm.testnet.shimmer.network/address/0xdAe024AD7eeE95ceC83F4df5C5DB06A8298b550E)
-- FaucetToken (fake Ethereum, only used for address): [0x8367300Db88A504Cef44c02d72740f2763eC6e9A](https://explorer.evm.testnet.shimmer.network/address/0x8367300Db88A504Cef44c02d72740f2763eC6e9A)
+1. First get foundry via [getfoundry.sh](https://getfoundry.sh).
 
-For local development make sure to add an `.env` and add the following env vars:
+2. Second run `foundryup` to install the foundry toolchain.
+
+3. Now we can build the project running `forge build`.
+
+4. For local development make sure to add an `.env` and add the following env vars:
 
 ```bash
 RPC_URL=http://localhost:8545/
@@ -17,8 +17,16 @@ PUBLIC_ADDR=my-pub-key
 PYTH_ADDR=pyth-addr
 ```
 
-And run `anvil` with the `--fork-url` flag and specify which chain should be forked. It is then important
-to match `PYTH_ADDR` with the actual address on the forked chain.
+5. run `anvil` with the `--fork-url` flag and specify which chain should be forked. It is then important
+   to match `PYTH_ADDR` with the actual address on the forked chain.
+
+## Deployment
+
+- TradePair: [0xFA4DE5e7dfb2bD60C6Fda0f5D575b5F3F9F2e9Ac](https://explorer.evm.testnet.shimmer.network/address/0xFA4DE5e7dfb2bD60C6Fda0f5D575b5F3F9F2e9Ac)
+- LiquidityPool: [0xB66C2A973a97EBbC03d2b089792dd8A7baab91F9](https://explorer.evm.testnet.shimmer.network/address/0xB66C2A973a97EBbC03d2b089792dd8A7baab91F9)
+- PriceFeed: [0x6B514aB4eD47Ac370e5595f09752BB224e9Af5fF](https://explorer.evm.testnet.shimmer.network/address/0x6B514aB4eD47Ac370e5595f09752BB224e9Af5fF)
+- FaucetToken (fake Stablecoin for collateral): [0xdAe024AD7eeE95ceC83F4df5C5DB06A8298b550E](https://explorer.evm.testnet.shimmer.network/address/0xdAe024AD7eeE95ceC83F4df5C5DB06A8298b550E)
+- FaucetToken (fake Ethereum, only used for address): [0x8367300Db88A504Cef44c02d72740f2763eC6e9A](https://explorer.evm.testnet.shimmer.network/address/0x8367300Db88A504Cef44c02d72740f2763eC6e9A)
 
 ## Documentation
 

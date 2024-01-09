@@ -26,7 +26,9 @@ struct PositionDetails {
 }
 
 interface ITradePair {
-    event PositionOpened(address indexed owner, uint256 id, int256 entryPrice, uint256 leverage, int8 direction);
+    event PositionOpened(
+        address indexed owner, uint256 id, int256 entryPrice, uint256 collateral, uint256 leverage, int8 direction
+    );
     event PositionClosed(address indexed owner, uint256 id, uint256 value);
     event PositionLiquidated(address indexed owner, uint256 id);
 

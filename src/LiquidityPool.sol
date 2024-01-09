@@ -5,7 +5,6 @@ import "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import "openzeppelin/token/ERC20/ERC20.sol";
 import "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "src/interfaces/ILiquidityPool.sol";
-import "src/interfaces/ITradePair.sol";
 import "src/interfaces/IController.sol";
 
 contract LiquidityPool is ERC20, ILiquidityPool {
@@ -14,7 +13,6 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     IERC20Metadata public asset;
     int256 public maxBorrowRate; // Hourly
     IController public controller;
-    ITradePair public tradePair;
 
     uint256 private immutable _ONE_LPT;
 
