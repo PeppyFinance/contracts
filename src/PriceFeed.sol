@@ -9,18 +9,18 @@ contract PriceFeed is IPriceFeed {
     IPyth pyth;
     int256 public constant PRICE_PRECISION = 1e18;
 
-    mapping(string => bytes32) public priceIds;
+    mapping(address => bytes32) public priceIds;
 
     constructor(address _pyth) {
         pyth = IPyth(_pyth);
     }
 
-    function setPriceFeed(string calldata _index, bytes32 _priceId) external override {
-        priceIds[_index] = _priceId;
+    function setPriceFeed(address _token, bytes32 _priceId) external override {
+        priceIds[_token] = _priceId;
     }
 
-    function getPrice(string calldata _index, bytes[] memory _updateData) external payable override returns (int256) {
-        PythStructs.Price memory price = _getPrice(priceIds[_index], _updateData);
+    function getPrice(address _token, bytes[] memory _updateData) external payable override returns (int256) {
+        PythStructs.Price memory price = _getPrice(priceIds[_token], _updateData);
         return _normalize(price);
     }
 
@@ -38,9 +38,9 @@ contract PriceFeed is IPriceFeed {
     }
 
     function _getPrice(bytes32 _priceId, bytes[] memory _updateData) internal returns (PythStructs.Price memory) {
-        // uint fee = pyth.getUpdateFee(_updateData);
-        // pyth.updatePriceFeeds{value: fee}(_updateData);
+        uint fee = pyth.getUpdateFee(_updateData);
+        pyth.updatePriceFeeds{value: fee}(_updateData);
 
-        return pyth.getPriceUnsafe(_priceId);
+        return pyth.getPrice(_priceId);
     }
 }

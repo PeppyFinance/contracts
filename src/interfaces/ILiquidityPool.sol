@@ -3,11 +3,8 @@ pragma solidity ^0.8.18;
 
 import "openzeppelin/token/ERC20/IERC20.sol";
 import "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
-import "src/interfaces/ITradePair.sol";
 
 interface ILiquidityPool is IERC20 {
-    function setTradePair(ITradePair tradePair) external;
-
     function redeem(uint256 shares) external;
     function previewRedeem(uint256 shares) external view returns (uint256 assets);
     function previewDeposit(uint256 assets) external view returns (uint256 shares);
