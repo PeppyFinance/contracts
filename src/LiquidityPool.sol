@@ -45,6 +45,9 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     }
 
     function previewRedeem(uint256 shares) public view returns (uint256) {
+        if (totalSupply() == 0) {
+            return 0;
+        }
         return (shares * totalAssets()) / totalSupply();
     }
 
@@ -85,6 +88,9 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     }
 
     function ratio() public view returns (uint256) {
+        if (totalAssets() == 0) {
+            return 0;
+        }
         return totalSupply() / totalAssets();
     }
 
