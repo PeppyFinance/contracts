@@ -110,9 +110,13 @@ contract Simulation is Test {
     }
 
     function test_frontrun_traderLoss() public {
+        _logState("before");
+
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        _logState("after");
 
         // Now bobs position is nearly liquidatable
         _setPrice(address(collateralToken), 801 ether);
@@ -131,6 +135,76 @@ contract Simulation is Test {
         assertEq(liquidityPool.previewRedeem(1000 ether), 1049.5 ether, "alice redeemable");
     }
 
+    function test_frontrun_traderProfit() public {
+        _logState("before deposit");
+
+        _deposit(ALICE, 1000 ether);
+        _deposit(DAN, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        _logState("after deposit");
+
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        _logState("after position open");
+
+        // Now bobs position is nearly liquidatable
+        _setPrice(address(collateralToken), 1200 ether);
+        // Alice's shares are still worth 1000 ether
+        assertEq(liquidityPool.previewRedeem(1000 ether), 1000 ether, "alice redeemable");
+        // Dan frontruns
+
+        // position gets liquidated
+        _setPrice(address(collateralToken), 1200 ether);
+        _closePosition(BOB, 1);
+
+        _logState("after position close");
+
+        // Dan withdraws
+        _redeem(DAN, 1000 ether);
+        // Dan made a fast profit
+        assertEq(collateralToken.balanceOf(DAN), 950 ether, "dan collateral balance");
+        // Alice only got half of the profit
+        assertEq(liquidityPool.previewRedeem(1000 ether), 950 ether, "alice claim");
+    }
+
+    function test_frontrun_traderProfit_executed() public {
+        _logState("before deposit");
+
+        _deposit(ALICE, 1000 ether);
+        _deposit(DAN, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        _logState("after deposit");
+
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        _logState("after position open");
+
+        // Now bobs position is nearly liquidatable
+        _setPrice(address(collateralToken), 1200 ether);
+        // Alice's shares are still worth 1000 ether
+        assertEq(liquidityPool.previewRedeem(1000 ether), 1000 ether, "alice redeemable");
+        // Dan frontruns
+
+        // position gets liquidated
+        _setPrice(address(collateralToken), 1200 ether);
+
+        // "Frontrunning" occurs:
+        _redeem(DAN, 1000 ether);
+
+        _logState("after dan redeem");
+
+        _closePosition(BOB, 1);
+
+        _logState("after position close");
+
+        // Dan withdraws
+        // Dan made a fast profit
+        assertEq(collateralToken.balanceOf(DAN), 1000 ether, "dan collateral balance");
+        // Alice only got half of the profit
+        assertEq(liquidityPool.previewRedeem(1000 ether), 900 ether, "alice redeemable");
+    }
     // Helper functions
 
     function _setPrice(address token, int256 price) internal {
@@ -170,11 +244,27 @@ contract Simulation is Test {
         tradePair.liquidatePosition(id, new bytes[](0));
     }
 
+    function _logState(string memory message) internal {
+        emit log_string("");
+        emit log_string(message);
+        _logState();
+    }
+
     function _logState() internal {
         emit log_named_decimal_uint(
             padStringToLength("alice collateral balance", 30), collateralToken.balanceOf(ALICE), 18
         );
+        emit log_named_decimal_uint(padStringToLength("dan collateral balance", 30), collateralToken.balanceOf(DAN), 18);
+        emit log_named_decimal_uint(
+            padStringToLength("tradepair collateral balance", 30), collateralToken.balanceOf(address(tradePair)), 18
+        );
         emit log_named_decimal_uint(padStringToLength("alice lp balance", 30), liquidityPool.balanceOf(ALICE), 18);
+        emit log_named_decimal_uint(
+            padStringToLength("alice lp claim", 30), liquidityPool.previewRedeem(liquidityPool.balanceOf(ALICE)), 18
+        );
+        emit log_named_decimal_uint(
+            padStringToLength("dan lp claim", 30), liquidityPool.previewRedeem(liquidityPool.balanceOf(DAN)), 18
+        );
         emit log_named_decimal_uint(
             padStringToLength("lp assets", 30), collateralToken.balanceOf(address(liquidityPool)), 18
         );
