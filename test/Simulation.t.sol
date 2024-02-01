@@ -271,6 +271,15 @@ contract Simulation is Test {
         emit log_named_decimal_uint(padStringToLength("lp total supply", 30), liquidityPool.totalSupply(), 18);
     }
 
+    /**
+     * @dev Pads a string to a specified length.
+     * If the input string is shorter than the specified length, it is padded with spaces.
+     * If the input string is longer or equal to the specified length, it is returned as is.
+     *
+     * @param input The string to be padded.
+     * @param X The desired length of the output string.
+     * @return A string of length X. If the input string is shorter than X, it is padded with spaces.
+     */
     function padStringToLength(string memory input, uint256 X) internal pure returns (string memory) {
         bytes memory inputBytes = bytes(input);
         if (inputBytes.length >= X) {
