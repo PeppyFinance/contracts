@@ -12,7 +12,7 @@ import "openzeppelin/token/ERC20/ERC20.sol";
 
 contract Simulation is Test, WithHelpers {
     function setUp() public {
-        deployTestSetup();
+        _deployTestSetup();
     }
 
     function test_deposit() public {

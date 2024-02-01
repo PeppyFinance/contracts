@@ -18,7 +18,7 @@ contract WithHelpers is Test {
 
     function test_WithHelpers() public {}
 
-    function deployTestSetup() public {
+    function _deployTestSetup() public {
         controller = new Controller();
         collateralToken = new ERC20("Collateral", "COLL");
         priceFeed = new MockPriceFeed();
