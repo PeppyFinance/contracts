@@ -200,6 +200,10 @@ contract TradePair is ITradePair {
         return price;
     }
 
+    function totalOpenInterest() public view returns (int256) {
+        return int256(longOpenInterest) - int256(shortOpenInterest);
+    }
+
     function excessOpenInterest() public view returns (uint256) {
         if (longOpenInterest > shortOpenInterest) {
             return longOpenInterest - shortOpenInterest;
