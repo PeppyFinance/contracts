@@ -26,4 +26,15 @@ contract TradePairBasicTest is Test, WithHelpers {
         _closePosition(BOB, 1);
         assertEq(tradePair.totalOpenInterest(), 0);
     }
+
+    function test_unrealizedPnL() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        assertEq(_tradePair_unrealizedPnL(), 0);
+        _setPrice(address(collateralToken), 1200 ether);
+        assertEq(_tradePair_unrealizedPnL(), 100 ether);
+        _closePosition(BOB, 1);
+        assertEq(_tradePair_unrealizedPnL(), 0);
+    }
 }

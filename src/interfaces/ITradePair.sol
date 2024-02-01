@@ -41,6 +41,6 @@ interface ITradePair {
         external
         view
         returns (PositionDetails memory);
-    function excessOpenInterest() external view returns (uint256);
+    function excessOpenInterest() external view returns (int256);
     function updateFeeIntegrals() external;
 }

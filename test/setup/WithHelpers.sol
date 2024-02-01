@@ -72,6 +72,12 @@ contract WithHelpers is Test {
         _logState();
     }
 
+    function _tradePair_unrealizedPnL() internal returns (int256) {
+        return tradePair.unrealizedPnL(new bytes[](0));
+    }
+
+    // Log functions
+
     function _logState() internal {
         emit log_named_decimal_uint(
             padStringToLength("alice collateral balance", 30), collateralToken.balanceOf(ALICE), 18
