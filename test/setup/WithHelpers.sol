@@ -66,6 +66,10 @@ contract WithHelpers is Test {
         tradePair.liquidatePosition(id, new bytes[](0));
     }
 
+    function _tradePair_unrealizedPnL() internal returns (int256) {
+        return tradePair.unrealizedPnL(new bytes[](0));
+    }
+
     // Log functions
 
     function _logState(string memory message) internal {
@@ -75,10 +79,6 @@ contract WithHelpers is Test {
         emit log_string("");
         emit log_string(message);
         _logState();
-    }
-
-    function _tradePair_unrealizedPnL() internal returns (int256) {
-        return tradePair.unrealizedPnL(new bytes[](0));
     }
 
     function _logState() internal {
