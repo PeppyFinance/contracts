@@ -66,7 +66,12 @@ contract WithHelpers is Test {
         tradePair.liquidatePosition(id, new bytes[](0));
     }
 
+    // Log functions
+
     function _logState(string memory message) internal {
+        if (!vm.envOr("LOG_SIMULATION", false)) {
+            return;
+        }
         emit log_string("");
         emit log_string(message);
         _logState();
@@ -76,9 +81,10 @@ contract WithHelpers is Test {
         return tradePair.unrealizedPnL(new bytes[](0));
     }
 
-    // Log functions
-
     function _logState() internal {
+        if (!vm.envOr("LOG_SIMULATION", false)) {
+            return;
+        }
         emit log_named_decimal_uint(
             padStringToLength("alice collateral balance", 30), collateralToken.balanceOf(ALICE), 18
         );
