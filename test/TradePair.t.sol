@@ -38,7 +38,7 @@ contract TradePairBasicTest is Test, WithHelpers {
         assertEq(_tradePair_unrealizedPnL(), 0);
     }
 
-    function test_syncUnrealizedPnL() public {
+    function test_syncUnrealizedPnL_basic() public {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
@@ -64,5 +64,26 @@ contract TradePairBasicTest is Test, WithHelpers {
         assertEq(_tradePair_totalCollateral(), 100 ether);
         _closePosition(BOB, 1);
         assertEq(_tradePair_totalCollateral(), 0);
+    }
+
+    function test__syncUnrealizedPnL_complex() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        _setPrice(address(collateralToken), 1250 ether);
+
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        _setPrice(address(collateralToken), 1500 ether);
+
+        // 100 * 250% + 100 * 100%
+        assertEq(_tradePair_unrealizedPnL(), 350 ether, "unrealizedPnL before");
+
+        _tradePair_syncUnrealizedPnL();
+
+        // 200 + 350
+        assertEq(collateralToken.balanceOf(address(tradePair)), 550 ether, "tradePair balance before");
+
+        // 1000 - 350
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 650 ether, "liquidityPool balance before");
     }
 }
