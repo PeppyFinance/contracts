@@ -33,6 +33,8 @@ contract TradePair is ITradePair {
     int256 public longOpenInterest;
     int256 public shortOpenInterest;
     int256 public averagePrice;
+    int256 public longCollateral;
+    int256 public shortCollateral;
 
     int256 public borrowFeeIntegral;
     int256 public fundingFeeIntegral;
@@ -80,6 +82,7 @@ contract TradePair is ITradePair {
 
         _updateAveragePrice(int256(volume) * direction, entryPrice);
         _updateOpenInterest(int256(volume), direction);
+        _updateCollateral(int256(collateral), direction);
 
         IERC20(liquidityPool.asset()).safeTransferFrom(msg.sender, address(this), collateral);
 
@@ -96,6 +99,7 @@ contract TradePair is ITradePair {
 
         _updateAveragePrice(-1 * volume * position.direction, closePrice);
         _updateOpenInterest(-1 * volume, position.direction);
+        _updateCollateral(-1 * int256(position.collateral), position.direction);
 
         if (value > 0) {
             // Position is not underwater.
@@ -129,12 +133,24 @@ contract TradePair is ITradePair {
 
         _updateAveragePrice(-1 * int256(volume) * position.direction, closePrice);
         _updateOpenInterest(-1 * int256(volume), position.direction);
+        _updateCollateral(-1 * int256(position.collateral), position.direction);
 
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
         _dropPosition(id, position.owner);
         emit PositionLiquidated(position.owner, id);
+    }
+
+    function syncUnrealizedPnL(bytes[] memory priceUpdateData_) external {
+        int256 unrealizedPnL_ = unrealizedPnL(priceUpdateData_);
+        int256 balance = int256(collateralToken.balanceOf(address(this)));
+
+        int256 missingCollateral = totalCollateral() + unrealizedPnL_ - balance;
+
+        if (missingCollateral > 0) {
+            liquidityPool.requestPayout(uint256(missingCollateral));
+        }
     }
 
     function getPositionDetails(uint256 id, int256 price) public view returns (PositionDetails memory) {
@@ -156,6 +172,10 @@ contract TradePair is ITradePair {
         );
     }
 
+    function totalCollateral() public view returns (int256) {
+        return longCollateral + shortCollateral;
+    }
+
     function getUserPositionsCount(address user) external view returns (uint256) {
         return userPositionIds[user].length;
     }
@@ -174,6 +194,16 @@ contract TradePair is ITradePair {
         }
         int256 price = _getPrice(priceUpdateData_);
         return totalOpenInterest() * (price - averagePrice) / averagePrice;
+    }
+
+    function _updateCollateral(int256 addedCollateral, int8 direction) internal {
+        if (direction == LONG) {
+            longCollateral += addedCollateral;
+        } else if (direction == SHORT) {
+            shortCollateral += addedCollateral;
+        } else {
+            revert("TradePair::_updateCollateral: Invalid direction");
+        }
     }
 
     function _updateOpenInterest(int256 addedVolume, int8 direction) internal {

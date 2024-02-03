@@ -70,6 +70,14 @@ contract WithHelpers is Test {
         return tradePair.unrealizedPnL(new bytes[](0));
     }
 
+    function _tradePair_syncUnrealizedPnL() internal {
+        tradePair.syncUnrealizedPnL(new bytes[](0));
+    }
+
+    function _tradePair_totalCollateral() internal view returns (int256) {
+        return tradePair.totalCollateral();
+    }
+
     // Log functions
 
     function _logState(string memory message) internal {
