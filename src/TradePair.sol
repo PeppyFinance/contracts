@@ -64,10 +64,14 @@ contract TradePair is ITradePair {
         ASSET_MULTIPLIER = int256(10 ** _assetDecimals);
     }
 
+    // TODO: Add modifier to syncUnrealizedPnL at all position calls
+
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
         external
         payable
     {
+        // TODO: Maybe move towards entryVolume and collateral instead of leverage
+        // TODO: Require that all parameters are valid
         // updateFeeIntegrals();
         int256 entryPrice = _getPrice(_priceUpdateData);
         uint256 id = ++_nextId;
