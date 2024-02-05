@@ -86,4 +86,16 @@ contract TradePairBasicTest is Test, WithHelpers {
         // 1000 - 350
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 650 ether, "liquidityPool balance before");
     }
+
+    function test_syncedUnrealizedPnL_aboveTotalCollateral() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        // Positon is liquidatable
+        _setPrice(address(collateralToken), 800 ether);
+        _tradePair_syncUnrealizedPnL();
+        assertEq(collateralToken.balanceOf(address(tradePair)), 100 ether, "tradePair balance after");
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool balance after");
+    }
 }
