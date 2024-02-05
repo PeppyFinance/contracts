@@ -119,4 +119,34 @@ contract TradePairBasicTest is Test, WithHelpers {
             collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool balance after price decrease"
         );
     }
+
+    function test_syncUnrealizedPnL_afterLiquidation() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        _openPosition(BOB, 100 ether, SHORT, _5X);
+
+        _setPrice(address(collateralToken), 1500 ether);
+        // the short should have been liquidated at 1200
+
+        _tradePair_syncUnrealizedPnL();
+
+        assertEq(collateralToken.balanceOf(address(tradePair)), 200 ether, "tradePair balance before");
+        assertEq(_tradePair_unrealizedPnL(), 0, "unrealizedPnL before");
+
+        _liquidatePosition(2);
+
+        _tradePair_syncUnrealizedPnL(); // TODO: remove, tradePair should sync unrealizedPnL on liquidation
+
+        // only one position open, 5x * 50% * 100 = 250
+        assertEq(_tradePair_unrealizedPnL(), 250 ether, "unrealizedPnL after");
+        assertEq(collateralToken.balanceOf(address(tradePair)), 350 ether, "tradePair balance after");
+
+        _closePosition(BOB, 1);
+
+        _tradePair_syncUnrealizedPnL(); // TODO: remove, tradePair should sync unrealizedPnL on liquidation
+
+        assertEq(_tradePair_unrealizedPnL(), 0 ether, "unrealizedPnL after");
+        assertEq(collateralToken.balanceOf(address(tradePair)), 0 ether, "tradePair balance after");
+    }
 }
