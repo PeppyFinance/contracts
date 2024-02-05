@@ -23,7 +23,7 @@ contract WithHelpers is Test {
         collateralToken = new ERC20("Collateral", "COLL");
         priceFeed = new MockPriceFeed();
         liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, collateralToken, priceFeed, liquidityPool);
+        tradePair = new TradePair(controller, collateralToken, priceFeed, liquidityPool, 18);
         controller.addTradePair(address(tradePair));
     }
 

@@ -32,7 +32,10 @@ contract TradePair is ITradePair {
 
     int256 public longOpenInterest;
     int256 public shortOpenInterest;
-    int256 public averagePrice;
+
+    int256 public longTotalAssets;
+    int256 public shortTotalAssets;
+
     int256 public longCollateral;
     int256 public shortCollateral;
 
@@ -45,17 +48,20 @@ contract TradePair is ITradePair {
 
     int8 constant LONG = 1;
     int8 constant SHORT = -1;
+    int256 immutable ASSET_MULTIPLIER;
 
     constructor(
         IController _controller,
         IERC20 _collateralToken,
         IPriceFeed _priceFeed,
-        ILiquidityPool _liquidityPool
+        ILiquidityPool _liquidityPool,
+        uint8 _assetDecimals
     ) {
         controller = _controller;
         collateralToken = _collateralToken;
         priceFeed = _priceFeed;
         liquidityPool = _liquidityPool;
+        ASSET_MULTIPLIER = int256(10 ** _assetDecimals);
     }
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
@@ -65,11 +71,14 @@ contract TradePair is ITradePair {
         // updateFeeIntegrals();
         int256 entryPrice = _getPrice(_priceUpdateData);
         uint256 id = ++_nextId;
-        uint256 volume = collateral * leverage / 1e6;
+        int256 volume = int256(collateral * leverage / 1e6);
+        int256 assets = int256(volume) * ASSET_MULTIPLIER / entryPrice;
 
         positions[id] = Position(
             collateral,
             entryPrice,
+            volume,
+            assets,
             block.timestamp,
             leverage,
             borrowFeeIntegral,
@@ -80,8 +89,8 @@ contract TradePair is ITradePair {
         userPositionIds[msg.sender].push(id);
         userPositionIndex[msg.sender][id] = userPositionIds[msg.sender].length - 1;
 
-        _updateAveragePrice(int256(volume) * direction, entryPrice);
-        _updateOpenInterest(int256(volume), direction);
+        _updateOpenInterest(volume, direction);
+        _updateTotalAssets(int256(assets), direction);
         _updateCollateral(int256(collateral), direction);
 
         IERC20(liquidityPool.asset()).safeTransferFrom(msg.sender, address(this), collateral);
@@ -97,8 +106,8 @@ contract TradePair is ITradePair {
         uint256 value = _getValue(id, closePrice);
         int256 volume = int256(position.collateral * position.leverage / 1e6);
 
-        _updateAveragePrice(-1 * volume * position.direction, closePrice);
         _updateOpenInterest(-1 * volume, position.direction);
+        _updateTotalAssets(-1 * int256(position.assets), position.direction);
         _updateCollateral(-1 * int256(position.collateral), position.direction);
 
         if (value > 0) {
@@ -131,8 +140,8 @@ contract TradePair is ITradePair {
 
         require(_getValue(id, closePrice) <= 0, "Position is not liquidatable");
 
-        _updateAveragePrice(-1 * int256(volume) * position.direction, closePrice);
         _updateOpenInterest(-1 * int256(volume), position.direction);
+        _updateTotalAssets(-1 * int256(position.assets), position.direction);
         _updateCollateral(-1 * int256(position.collateral), position.direction);
 
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
@@ -197,11 +206,12 @@ contract TradePair is ITradePair {
     }
 
     function unrealizedPnL(bytes[] memory priceUpdateData_) public returns (int256) {
-        if (averagePrice == 0) {
-            return 0;
-        }
         int256 price = _getPrice(priceUpdateData_);
-        return totalOpenInterest() * (price - averagePrice) / averagePrice;
+
+        int256 valueTotalAssetsLong = longTotalAssets * price / ASSET_MULTIPLIER;
+        int256 valueTotalAssetsShort = shortTotalAssets * price / ASSET_MULTIPLIER;
+
+        return valueTotalAssetsLong - longOpenInterest + shortOpenInterest - valueTotalAssetsShort;
     }
 
     function _updateCollateral(int256 addedCollateral, int8 direction) internal {
@@ -224,14 +234,14 @@ contract TradePair is ITradePair {
         }
     }
 
-    function _updateAveragePrice(int256 addedVolume_, int256 newPrice_) internal {
-        if (totalOpenInterest() == 0) {
-            averagePrice = newPrice_;
-            return;
+    function _updateTotalAssets(int256 addedAssets, int8 direction) internal {
+        if (direction == LONG) {
+            longTotalAssets += addedAssets;
+        } else if (direction == SHORT) {
+            shortTotalAssets += addedAssets;
+        } else {
+            revert("TradePair::_updateTotalAssets: Invalid direction");
         }
-
-        averagePrice = ((totalOpenInterest() + addedVolume_) * 1e18)
-            / ((totalOpenInterest() * 1e18 / averagePrice) + (addedVolume_ * 1e18 / newPrice_));
     }
 
     function _dropPosition(uint256 id, address owner) internal {
