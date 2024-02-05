@@ -146,10 +146,10 @@ contract TradePair is ITradePair {
         int256 unrealizedPnL_ = unrealizedPnL(priceUpdateData_);
         int256 balance = int256(collateralToken.balanceOf(address(this)));
 
-        int256 missingCollateral = totalCollateral() + unrealizedPnL_ - balance;
+        int256 missingAmount = totalCollateral() + unrealizedPnL_ - balance;
 
-        if (missingCollateral > 0) {
-            liquidityPool.requestPayout(uint256(missingCollateral));
+        if (missingAmount > 0) {
+            liquidityPool.requestPayout(uint256(missingAmount));
         }
     }
 
