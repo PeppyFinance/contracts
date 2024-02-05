@@ -143,13 +143,21 @@ contract TradePair is ITradePair {
     }
 
     function syncUnrealizedPnL(bytes[] memory priceUpdateData_) external {
-        int256 unrealizedPnL_ = unrealizedPnL(priceUpdateData_);
+        int256 _unrealizedPnL = unrealizedPnL(priceUpdateData_);
         int256 balance = int256(collateralToken.balanceOf(address(this)));
 
-        int256 missingAmount = totalCollateral() + unrealizedPnL_ - balance;
+        // Target Balance is minimum the total collateral and maximum the total collateral + unrealizedPnL
+        int256 targetBalance = totalCollateral();
+        if (_unrealizedPnL > 0) {
+            targetBalance += _unrealizedPnL;
+        }
+
+        int256 missingAmount = targetBalance - balance;
 
         if (missingAmount > 0) {
             liquidityPool.requestPayout(uint256(missingAmount));
+        } else {
+            collateralToken.safeTransfer(address(liquidityPool), uint256(-1 * missingAmount));
         }
     }
 

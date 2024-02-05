@@ -98,4 +98,25 @@ contract TradePairBasicTest is Test, WithHelpers {
         assertEq(collateralToken.balanceOf(address(tradePair)), 100 ether, "tradePair balance after");
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool balance after");
     }
+
+    function test__syncUnrealizedPnL_fluctuates() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        _setPrice(address(collateralToken), 1200 ether);
+        _tradePair_syncUnrealizedPnL();
+
+        assertEq(collateralToken.balanceOf(address(tradePair)), 200 ether, "tradePair balance after price increase");
+        assertEq(
+            collateralToken.balanceOf(address(liquidityPool)), 900 ether, "liquidityPool balance after price increase"
+        );
+
+        _setPrice(address(collateralToken), 800 ether);
+
+        _tradePair_syncUnrealizedPnL();
+        assertEq(collateralToken.balanceOf(address(tradePair)), 100 ether, "tradePair balance after price decrease");
+        assertEq(
+            collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool balance after price decrease"
+        );
+    }
 }
