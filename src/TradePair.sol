@@ -122,13 +122,13 @@ contract TradePair is ITradePair {
                 liquidityPool.requestPayout(value - position.collateral);
             } else {
                 // Position is not profitable. Transfer PnL and fee to LP.
-                IERC20(liquidityPool.asset()).safeTransfer(address(liquidityPool), position.collateral - value);
+                collateralToken.safeTransfer(address(liquidityPool), position.collateral - value);
             }
             // In all cases, owner receives the (leftover) value.
-            IERC20(liquidityPool.asset()).safeTransfer(msg.sender, value);
+            collateralToken.safeTransfer(msg.sender, value);
         } else {
             // Position is underwater. All collateral goes to LP
-            IERC20(liquidityPool.asset()).safeTransfer(address(liquidityPool), position.collateral);
+            collateralToken.safeTransfer(address(liquidityPool), position.collateral);
         }
 
         _dropPosition(id, position.owner);
