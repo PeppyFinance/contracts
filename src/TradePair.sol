@@ -63,12 +63,10 @@ contract TradePair is ITradePair {
         ASSET_MULTIPLIER = int256(10 ** _assetDecimals);
     }
 
-    // TODO: Add modifier to syncUnrealizedPnL at all position calls
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory priceUpdateData_)
         external
         payable
     {
-        // TODO: Maybe move towards entryVolume and collateral instead of leverage
         // TODO: Require that all parameters are valid
         // updateFeeIntegrals();
         int256 entryPrice = _getPrice(priceUpdateData_);
@@ -77,16 +75,7 @@ contract TradePair is ITradePair {
         int256 assets = int256(volume) * ASSET_MULTIPLIER / entryPrice;
 
         positions[id] = Position(
-            collateral,
-            entryPrice,
-            volume,
-            assets,
-            block.timestamp,
-            leverage,
-            borrowFeeIntegral,
-            fundingFeeIntegral,
-            msg.sender,
-            direction
+            collateral, volume, assets, block.timestamp, borrowFeeIntegral, fundingFeeIntegral, msg.sender, direction
         );
         userPositionIds[msg.sender].push(id);
         userPositionIndex[msg.sender][id] = userPositionIds[msg.sender].length - 1;
@@ -178,13 +167,11 @@ contract TradePair is ITradePair {
         return PositionDetails(
             id,
             position.collateral,
-            position.entryPrice,
+            position.entryVolume,
+            position.assets,
             position.entryTimestamp,
-            position.leverage,
-            (borrowFeeIntegral - position.borrowFeeIntegral) * int256(position.collateral) * int256(position.leverage)
-                / 1e6 / 1 hours,
-            (fundingFeeIntegral - position.fundingFeeIntegral) * int256(position.collateral) * int256(position.leverage)
-                / 1e6 / 1 hours,
+            (borrowFeeIntegral - position.borrowFeeIntegral) * position.entryVolume / 1e6 / 1 hours,
+            (fundingFeeIntegral - position.fundingFeeIntegral) * position.entryVolume / 1e6 / 1 hours,
             position.owner,
             position.direction,
             _getValue(id, price)
@@ -262,13 +249,14 @@ contract TradePair is ITradePair {
 
     function _getValue(uint256 id, int256 price) internal view returns (uint256) {
         Position storage position = positions[id];
-        int256 profit = (price - position.entryPrice) * int256(position.leverage) * int256(position.collateral)
-            * position.direction / position.entryPrice / 1e6;
-        int256 borrowFee = (borrowFeeIntegral - position.borrowFeeIntegral) * int256(position.collateral)
-            * int256(position.leverage) / 1e6 / 1 hours;
-        int256 fundingFee = (fundingFeeIntegral - position.fundingFeeIntegral) * int256(position.collateral)
-            * int256(position.leverage) / 1e6 / 1 hours;
+
+        int256 assetValue = position.assets * price / ASSET_MULTIPLIER;
+        int256 profit = (assetValue - position.entryVolume) * position.direction;
+        int256 borrowFee = (borrowFeeIntegral - position.borrowFeeIntegral) * position.entryVolume / 1e6 / 1 hours;
+        int256 fundingFee = (fundingFeeIntegral - position.fundingFeeIntegral) * position.entryVolume / 1e6 / 1 hours;
         int256 value = int256(position.collateral) + profit - borrowFee - fundingFee;
+
+        // A position can not have a negative value, as "after" liquidation nothing is left.
         if (value < 0) {
             return 0;
         }

@@ -3,11 +3,9 @@ pragma solidity ^0.8.18;
 
 struct Position {
     uint256 collateral;
-    int256 entryPrice; // TODO: remove
     int256 entryVolume;
     int256 assets;
     uint256 entryTimestamp;
-    uint256 leverage; // 1e6 = 1x, // TODO: remove
     int256 borrowFeeIntegral;
     int256 fundingFeeIntegral;
     address owner;
@@ -17,9 +15,9 @@ struct Position {
 struct PositionDetails {
     uint256 id;
     uint256 collateral;
-    int256 entryPrice; // TODO: remove
+    int256 entryVolume;
+    int256 assets;
     uint256 entryTimestamp;
-    uint256 leverage; // 1e6 = 1x, // TODO: remove
     int256 borrowFeeAmount;
     int256 fundingFeeAmount;
     address owner;
