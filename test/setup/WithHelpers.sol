@@ -86,6 +86,10 @@ contract WithHelpers is Test {
         return tradePair.getFundingRate();
     }
 
+    function _liquidityPool_setMaxBorrowRate(int256 rate) internal {
+        liquidityPool.setMaxBorrowRate(rate);
+    }
+
     // Log functions
 
     function _logState(string memory message) internal {

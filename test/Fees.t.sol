@@ -24,4 +24,22 @@ contract FeesTest is Test, WithHelpers {
         _deposit(ALICE, 1000 ether);
         assertEq(_tradePair_getFundingRate(), 0);
     }
+
+    function test_borrowRate_nonZero() public {
+        _liquidityPool_setMaxBorrowRate(5_000);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        assertEq(_tradePair_getBorrowRate(), 0, "borrow rate before");
+
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        // utilization is 50%
+        assertEq(_tradePair_getBorrowRate(), 2_500, "borrow rate after");
+
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        // utilization is 100%
+        assertEq(_tradePair_getBorrowRate(), 5_000, "borrow rate after");
+    }
 }
