@@ -49,6 +49,9 @@ contract TradePair is ITradePair {
     int8 constant SHORT = -1;
     int256 immutable ASSET_MULTIPLIER;
 
+    uint256 MIN_LEVERAGE = 1e6;
+    uint256 MAX_LEVERAGE = 100 * 1e6;
+
     constructor(
         IController _controller,
         IERC20 _collateralToken,
@@ -68,6 +71,8 @@ contract TradePair is ITradePair {
         payable
     {
         // TODO: Require that all parameters are valid
+        require(leverage >= MIN_LEVERAGE, "TradePair::openPosition: Leverage too low");
+        require(leverage <= MAX_LEVERAGE, "TradePair::openPosition: Leverage too high");
         // updateFeeIntegrals();
         int256 entryPrice = _getPrice(priceUpdateData_);
         uint256 id = ++_nextId;

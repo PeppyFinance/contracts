@@ -184,4 +184,26 @@ contract TradePairBasicTest is Test, WithHelpers {
         assertEq(_tradePair_unrealizedPnL(), 500 ether, "unrealizedPnL after");
         assertEq(collateralToken.balanceOf(address(tradePair)), 700 ether, "tradePair balance after");
     }
+
+    function test_openPosition_minLeverage() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        deal(address(collateralToken), BOB, 100 ether);
+
+        vm.startPrank(BOB);
+        collateralToken.approve(address(tradePair), 100 ether);
+        vm.expectRevert("TradePair::openPosition: Leverage too low");
+        tradePair.openPosition(100 ether, 999_999, LONG, new bytes[](0));
+    }
+
+    function test_openPosition_maxLeverage() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        deal(address(collateralToken), BOB, 100 ether);
+
+        vm.startPrank(BOB);
+        collateralToken.approve(address(tradePair), 100 ether);
+        vm.expectRevert("TradePair::openPosition: Leverage too high");
+        tradePair.openPosition(100 ether, 100_000_001, LONG, new bytes[](0));
+    }
 }
