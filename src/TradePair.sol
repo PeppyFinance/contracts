@@ -64,14 +64,14 @@ contract TradePair is ITradePair {
     }
 
     // TODO: Add modifier to syncUnrealizedPnL at all position calls
-    function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
+    function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory priceUpdateData_)
         external
         payable
     {
         // TODO: Maybe move towards entryVolume and collateral instead of leverage
         // TODO: Require that all parameters are valid
         // updateFeeIntegrals();
-        int256 entryPrice = _getPrice(_priceUpdateData);
+        int256 entryPrice = _getPrice(priceUpdateData_);
         uint256 id = ++_nextId;
         int256 volume = int256(collateral * leverage / 1e6);
         int256 assets = int256(volume) * ASSET_MULTIPLIER / entryPrice;
@@ -95,7 +95,9 @@ contract TradePair is ITradePair {
         _updateTotalAssets(int256(assets), direction);
         _updateCollateral(int256(collateral), direction);
 
-        IERC20(liquidityPool.asset()).safeTransferFrom(msg.sender, address(this), collateral);
+        collateralToken.safeTransferFrom(msg.sender, address(this), collateral);
+
+        syncUnrealizedPnL(priceUpdateData_);
 
         emit PositionOpened(msg.sender, id, entryPrice, collateral, leverage, direction);
     }
@@ -212,10 +214,10 @@ contract TradePair is ITradePair {
     function unrealizedPnL(bytes[] memory priceUpdateData_) public returns (int256) {
         int256 price = _getPrice(priceUpdateData_);
 
-        int256 valueTotalAssetsLong = longTotalAssets * price / ASSET_MULTIPLIER;
-        int256 valueTotalAssetsShort = shortTotalAssets * price / ASSET_MULTIPLIER;
+        int256 longTotalAssetsValue = longTotalAssets * price / ASSET_MULTIPLIER;
+        int256 shortTotalAssetsValue = shortTotalAssets * price / ASSET_MULTIPLIER;
 
-        return valueTotalAssetsLong - longOpenInterest + shortOpenInterest - valueTotalAssetsShort;
+        return longTotalAssetsValue - longOpenInterest + shortOpenInterest - shortTotalAssetsValue;
     }
 
     function _updateCollateral(int256 addedCollateral, int8 direction) internal {

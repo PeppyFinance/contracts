@@ -169,4 +169,19 @@ contract TradePairBasicTest is Test, WithHelpers {
         assertEq(_tradePair_unrealizedPnL(), 0 ether, "unrealizedPnL after");
         assertEq(collateralToken.balanceOf(address(tradePair)), 0 ether, "tradePair balance after");
     }
+
+    function test_syncedUnrealizedPnL_afterPositionOpen() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        _setPrice(address(collateralToken), 2000 ether);
+        assertEq(_tradePair_unrealizedPnL(), 500 ether, "unrealizedPnL before");
+
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        // only one position open, 5x * 100% * 100 = 500
+        assertEq(_tradePair_unrealizedPnL(), 500 ether, "unrealizedPnL after");
+        assertEq(collateralToken.balanceOf(address(tradePair)), 700 ether, "tradePair balance after");
+    }
 }
