@@ -138,11 +138,10 @@ contract TradePair is ITradePair {
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
         int256 closePrice = _getPrice(priceUpdateData_);
-        uint256 volume = position.collateral * position.leverage / 1e6;
 
         require(_getValue(id, closePrice) <= 0, "Position is not liquidatable");
 
-        _updateOpenInterest(-1 * int256(volume), position.direction);
+        _updateOpenInterest(-1 * position.entryVolume, position.direction);
         _updateTotalAssets(-1 * int256(position.assets), position.direction);
         _updateCollateral(-1 * int256(position.collateral), position.direction);
 
