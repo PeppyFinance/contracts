@@ -8,7 +8,6 @@ import "src/interfaces/IPriceFeed.sol";
 import "src/interfaces/ILiquidityPool.sol";
 import "src/interfaces/ITradePair.sol";
 
-// import console
 import "forge-std/console2.sol";
 
 contract TradePair is ITradePair {
@@ -65,7 +64,6 @@ contract TradePair is ITradePair {
     }
 
     // TODO: Add modifier to syncUnrealizedPnL at all position calls
-
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
         external
         payable
@@ -102,11 +100,11 @@ contract TradePair is ITradePair {
         emit PositionOpened(msg.sender, id, entryPrice, collateral, leverage, direction);
     }
 
-    function closePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
+    function closePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
         // updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner == msg.sender, "TradePair::closePosition: Only the owner can close the position");
-        int256 closePrice = _getPrice(_priceUpdateData);
+        int256 closePrice = _getPrice(priceUpdateData_);
         uint256 value = _getValue(id, closePrice);
         int256 volume = int256(position.collateral * position.leverage / 1e6);
 
@@ -132,14 +130,15 @@ contract TradePair is ITradePair {
         }
 
         _dropPosition(id, position.owner);
+        syncUnrealizedPnL(priceUpdateData_);
         emit PositionClosed(position.owner, id, value);
     }
 
-    function liquidatePosition(uint256 id, bytes[] memory _priceUpdateData) external payable {
+    function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
         // updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
-        int256 closePrice = _getPrice(_priceUpdateData);
+        int256 closePrice = _getPrice(priceUpdateData_);
         uint256 volume = position.collateral * position.leverage / 1e6;
 
         require(_getValue(id, closePrice) <= 0, "Position is not liquidatable");
@@ -152,10 +151,11 @@ contract TradePair is ITradePair {
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
         _dropPosition(id, position.owner);
+        syncUnrealizedPnL(priceUpdateData_);
         emit PositionLiquidated(position.owner, id);
     }
 
-    function syncUnrealizedPnL(bytes[] memory priceUpdateData_) external {
+    function syncUnrealizedPnL(bytes[] memory priceUpdateData_) public {
         int256 _unrealizedPnL = unrealizedPnL(priceUpdateData_);
         int256 balance = int256(collateralToken.balanceOf(address(this)));
 
