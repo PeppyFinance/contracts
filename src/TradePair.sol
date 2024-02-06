@@ -70,9 +70,9 @@ contract TradePair is ITradePair {
         external
         payable
     {
-        // TODO: Require that all parameters are valid
         require(leverage >= MIN_LEVERAGE, "TradePair::openPosition: Leverage too low");
         require(leverage <= MAX_LEVERAGE, "TradePair::openPosition: Leverage too high");
+
         // updateFeeIntegrals();
         int256 entryPrice = _getPrice(priceUpdateData_);
         uint256 id = ++_nextId;
