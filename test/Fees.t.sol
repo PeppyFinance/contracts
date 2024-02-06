@@ -14,4 +14,9 @@ contract FeesTest is Test, WithHelpers {
     function setUp() public {
         _deployTestSetup();
     }
+
+    function test_borrowRate_zero() public {
+        _deposit(ALICE, 1000 ether);
+        assertEq(_tradePair_getBorrowRate(), 0);
+    }
 }

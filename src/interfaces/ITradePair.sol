@@ -43,4 +43,5 @@ interface ITradePair {
         returns (PositionDetails memory);
     function excessOpenInterest() external view returns (int256);
     function updateFeeIntegrals() external;
+    function getBorrowRate() external view returns (int256);
 }

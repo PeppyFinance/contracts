@@ -288,7 +288,7 @@ contract TradePair is ITradePair {
 
     function updateFeeIntegrals() public {
         fundingFeeIntegral += _calculateFundingRate() * int256(block.timestamp - lastUpdateTimestamp);
-        borrowFeeIntegral += _calculateBorrowRate() * int256(block.timestamp - lastUpdateTimestamp);
+        borrowFeeIntegral += getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp);
         lastUpdateTimestamp = block.timestamp;
     }
 
@@ -311,7 +311,7 @@ contract TradePair is ITradePair {
         return 0;
     }
 
-    function _calculateBorrowRate() internal view returns (int256) {
+    function getBorrowRate() public view returns (int256) {
         uint256 totalAssets = liquidityPool.totalAssets();
         // TODO: missing check for totalAssets != 0 or rather sufficient
         // for opening a position. Should not be in this view function,

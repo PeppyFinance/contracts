@@ -78,6 +78,10 @@ contract WithHelpers is Test {
         return tradePair.totalCollateral();
     }
 
+    function _tradePair_getBorrowRate() internal view returns (int256) {
+        return tradePair.getBorrowRate();
+    }
+
     // Log functions
 
     function _logState(string memory message) internal {
