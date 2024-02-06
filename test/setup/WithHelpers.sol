@@ -82,6 +82,10 @@ contract WithHelpers is Test {
         return tradePair.getBorrowRate();
     }
 
+    function _tradePair_getFundingRate() internal view returns (int256) {
+        return tradePair.getFundingRate();
+    }
+
     // Log functions
 
     function _logState(string memory message) internal {

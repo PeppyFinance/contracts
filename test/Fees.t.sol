@@ -19,4 +19,9 @@ contract FeesTest is Test, WithHelpers {
         _deposit(ALICE, 1000 ether);
         assertEq(_tradePair_getBorrowRate(), 0);
     }
+
+    function test_fundingRate_zero() public {
+        _deposit(ALICE, 1000 ether);
+        assertEq(_tradePair_getFundingRate(), 0);
+    }
 }

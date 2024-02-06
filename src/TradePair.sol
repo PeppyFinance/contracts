@@ -287,13 +287,13 @@ contract TradePair is ITradePair {
     }
 
     function updateFeeIntegrals() public {
-        fundingFeeIntegral += _calculateFundingRate() * int256(block.timestamp - lastUpdateTimestamp);
+        fundingFeeIntegral += getFundingRate() * int256(block.timestamp - lastUpdateTimestamp);
         borrowFeeIntegral += getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp);
         lastUpdateTimestamp = block.timestamp;
     }
 
     /// @dev Positive funding rate means longs pay shorts
-    function _calculateFundingRate() internal view returns (int256) {
+    function getFundingRate() public view returns (int256) {
         if (longOpenInterest > shortOpenInterest) {
             if (shortOpenInterest == 0) {
                 return maxFundingRate;
