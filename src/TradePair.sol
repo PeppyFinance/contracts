@@ -108,28 +108,25 @@ contract TradePair is ITradePair {
         require(position.owner == msg.sender, "TradePair::closePosition: Only the owner can close the position");
         int256 closePrice = _getPrice(priceUpdateData_);
         uint256 value = _getValue(id, closePrice);
-        int256 volume = int256(position.collateral * position.leverage / 1e6);
+        require(value > 0, "Position is liquidatable");
 
-        _updateOpenInterest(-1 * volume, position.direction);
+        _updateOpenInterest(-1 * position.entryVolume, position.direction);
         _updateTotalAssets(-1 * int256(position.assets), position.direction);
         _updateCollateral(-1 * int256(position.collateral), position.direction);
 
-        if (value > 0) {
-            // Position is not underwater.
-            if (value > position.collateral) {
-                // Position is profitable.
-
-                liquidityPool.requestPayout(value - position.collateral);
-            } else {
-                // Position is not profitable. Transfer PnL and fee to LP.
-                collateralToken.safeTransfer(address(liquidityPool), position.collateral - value);
+        if (value > position.collateral) {
+            // Position is profitable.
+            // Make sure that tradePair has enough balance:
+            uint256 balance = collateralToken.balanceOf(address(this));
+            if (balance < value) {
+                liquidityPool.requestPayout(value - balance);
             }
-            // In all cases, owner receives the (leftover) value.
-            collateralToken.safeTransfer(msg.sender, value);
         } else {
-            // Position is underwater. All collateral goes to LP
-            collateralToken.safeTransfer(address(liquidityPool), position.collateral);
+            // Position is not profitable. Transfer PnL and fee to LP.
+            collateralToken.safeTransfer(address(liquidityPool), position.collateral - value);
         }
+        // In all cases, owner receives the (leftover) value.
+        collateralToken.safeTransfer(msg.sender, value);
 
         _dropPosition(id, position.owner);
         syncUnrealizedPnL(priceUpdateData_);
