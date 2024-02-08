@@ -115,4 +115,25 @@ contract FeesTest is Test, WithHelpers {
 
         assertEq(_tradePair_getBorrowRate(), 1_000, "borrow rate 0% utlization");
     }
+
+    function test_tradePair_borrowFeeIntegral() public {
+        console2.log(tradePair.lastUpdateTimestamp());
+        _liquidityPool_setMinBorrowRate(1 * BPS);
+        _liquidityPool_setMaxBorrowRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        vm.warp(1 hours + 1);
+
+        assertEq(_tradePair_getBorrowRate(), 1 * BPS, "borrow rate 0% utlization");
+
+        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+
+        assertEq(_tradePair_borrowFeeIntegral(), 1 * BPS, "borrow fee integral at 1 hours");
+        assertEq(_tradePair_getBorrowRate(), 3 * BPS, "borrow rate 50% utlization");
+
+        vm.warp(2 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+
+        assertEq(_tradePair_borrowFeeIntegral(), (1 + 3) * BPS, "borrow fee integral at 2 hours");
+    }
 }

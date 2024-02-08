@@ -11,8 +11,8 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     using SafeERC20 for IERC20Metadata;
 
     IERC20Metadata public asset;
-    int256 public minBorrowRate; // Hourly
-    int256 public maxBorrowRate; // Hourly
+    int256 public minBorrowRate; // Hourly in BPS (1e6)
+    int256 public maxBorrowRate; // Hourly in BPS (1e6)
     IController public controller;
 
     uint256 private immutable _ONE_LPT;

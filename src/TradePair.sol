@@ -64,6 +64,7 @@ contract TradePair is ITradePair {
         priceFeed = _priceFeed;
         liquidityPool = _liquidityPool;
         ASSET_MULTIPLIER = int256(10 ** _assetDecimals);
+        lastUpdateTimestamp = block.timestamp;
     }
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory priceUpdateData_)
@@ -73,7 +74,7 @@ contract TradePair is ITradePair {
         require(leverage >= MIN_LEVERAGE, "TradePair::openPosition: Leverage too low");
         require(leverage <= MAX_LEVERAGE, "TradePair::openPosition: Leverage too high");
 
-        // updateFeeIntegrals();
+        updateFeeIntegrals();
         int256 entryPrice = _getPrice(priceUpdateData_);
         uint256 id = ++_nextId;
         int256 volume = int256(collateral * leverage / 1e6);
@@ -287,8 +288,8 @@ contract TradePair is ITradePair {
     }
 
     function updateFeeIntegrals() public {
-        fundingFeeIntegral += getFundingRate() * int256(block.timestamp - lastUpdateTimestamp);
-        borrowFeeIntegral += getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp);
+        fundingFeeIntegral += getFundingRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
+        borrowFeeIntegral += getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
         lastUpdateTimestamp = block.timestamp;
     }
 
