@@ -117,7 +117,6 @@ contract FeesTest is Test, WithHelpers {
     }
 
     function test_tradePair_borrowFeeIntegral() public {
-        console2.log(tradePair.lastUpdateTimestamp());
         _liquidityPool_setMinBorrowRate(1 * BPS);
         _liquidityPool_setMaxBorrowRate(5 * BPS);
         _deposit(ALICE, 1000 ether);
@@ -134,6 +133,25 @@ contract FeesTest is Test, WithHelpers {
         vm.warp(2 hours + 1);
         _openPosition(BOB, 100 ether, LONG, 5_000_000);
 
+        assertEq(_tradePair_borrowFeeIntegral(), (1 + 3) * BPS, "borrow fee integral at 2 hours");
+    }
+
+    function test_tradePair_updatesBorrowFeeIntegralOnClose() public {
+        _liquidityPool_setMinBorrowRate(1 * BPS);
+        _liquidityPool_setMaxBorrowRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        vm.warp(1 hours + 1);
+
+        assertEq(_tradePair_getBorrowRate(), 1 * BPS, "borrow rate 0% utlization");
+
+        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+
+        assertEq(_tradePair_borrowFeeIntegral(), 1 * BPS, "borrow fee integral at 1 hours");
+
+        vm.warp(2 hours + 1);
+
+        _closePosition(BOB, 1);
         assertEq(_tradePair_borrowFeeIntegral(), (1 + 3) * BPS, "borrow fee integral at 2 hours");
     }
 }
