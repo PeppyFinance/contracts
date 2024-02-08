@@ -98,6 +98,10 @@ contract WithHelpers is Test {
         tradePair.setMaxFundingRate(rate);
     }
 
+    function _tradePair_setMaxSkew(int256 maxSkew) internal {
+        tradePair.setMaxSkew(maxSkew);
+    }
+
     function _liquidityPool_setMaxBorrowRate(int256 rate) internal {
         liquidityPool.setMaxBorrowRate(rate);
     }
