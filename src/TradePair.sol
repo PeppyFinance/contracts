@@ -315,7 +315,7 @@ contract TradePair is ITradePair {
         }
         if (shortOpenInterest > longOpenInterest) {
             if (longOpenInterest == 0) {
-                return maxFundingRate;
+                return -1 * maxFundingRate;
             }
             int256 relativeSkew = int256(shortOpenInterest) * BPS / int256(longOpenInterest);
             return -maxFundingRate * relativeSkew / maxSkew;

@@ -240,4 +240,41 @@ contract FeesTest is Test, WithHelpers {
         _closePosition(BOB, 2);
         assertEq(_tradePair_getFundingRate(), 5 * BPS, "skew 7/0 of 5 funding rate should be 5 (max)");
     }
+
+    function test_fundingRate_skew_short() public {
+        _tradePair_setMaxFundingRate(5 * BPS);
+        _tradePair_setMaxSkew(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 50 ether, LONG, _5X);
+        _openPosition(BOB, 50 ether, LONG, _5X);
+        _openPosition(BOB, 100 ether, SHORT, _5X);
+        assertEq(_tradePair_getFundingRate(), 0, "funding rate should be 0");
+
+        _openPosition(BOB, 100 ether, SHORT, _5X);
+        assertEq(_tradePair_getFundingRate(), -2 * BPS, "skew 2/1 of 5 funding rate should be -2");
+
+        _openPosition(BOB, 100 ether, SHORT, _5X);
+        assertEq(_tradePair_getFundingRate(), -3 * BPS, "skew 3/1 of 5 funding rate should be -3");
+
+        _openPosition(BOB, 100 ether, SHORT, _5X);
+        assertEq(_tradePair_getFundingRate(), -4 * BPS, "skew 4/1 of 5 funding rate should be -4");
+
+        _openPosition(BOB, 100 ether, SHORT, _5X);
+        assertEq(_tradePair_getFundingRate(), -5 * BPS, "skew 5/1 of 5 funding rate should be -5");
+
+        _openPosition(BOB, 100 ether, SHORT, _5X);
+
+        assertEq(_tradePair_getFundingRate(), -6 * BPS, "skew 6/1 of 5 funding rate should be -6");
+
+        _openPosition(BOB, 100 ether, SHORT, _5X);
+        assertEq(_tradePair_getFundingRate(), -7 * BPS, "skew 7/1 of 5 funding rate should be -7");
+
+        _closePosition(BOB, 1);
+        assertEq(_tradePair_getFundingRate(), -14 * BPS, "skew 7/0.5 of 5 funding rate should be -14");
+
+        _closePosition(BOB, 2);
+        assertEq(_tradePair_getFundingRate(), -5 * BPS, "skew 7/0 of 5 funding rate should be -5 (max)");
+    }
 }
