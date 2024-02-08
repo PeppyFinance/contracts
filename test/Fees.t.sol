@@ -174,4 +174,9 @@ contract FeesTest is Test, WithHelpers {
         _liquidatePosition(1);
         assertEq(_tradePair_borrowFeeIntegral(), (1 + 3) * BPS, "borrow fee integral at 2 hours");
     }
+
+    function test_tradePair_setMaxFundingRate() public {
+        _tradePair_setMaxFundingRate(5 * BPS);
+        assertEq(tradePair.maxFundingRate(), 5 * BPS, "funding rate");
+    }
 }

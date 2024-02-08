@@ -21,7 +21,6 @@ contract TradePair is ITradePair {
     // needed for efficient deletion of positions in userPositionIds array
     mapping(address => mapping(uint256 => uint256)) private userPositionIndex;
 
-    int256 public borrowRate = 0.00001 * 1e6; // 0.001% per hour
     uint256 public liquidatorReward = 1 * 1e18; // Same decimals as collateral
 
     IController public controller;
@@ -42,8 +41,8 @@ contract TradePair is ITradePair {
     int256 public fundingFeeIntegral;
     uint256 public lastUpdateTimestamp;
 
-    int256 public maxFundingRate; // 1e18
-    int256 public maxRelativeSkew; // 1e18
+    int256 public maxFundingRate; // in BPS (1e6)
+    int256 public maxRelativeSkew; // in BPS (1e6) (for simplicity reasons)
 
     int8 constant LONG = 1;
     int8 constant SHORT = -1;
@@ -207,6 +206,12 @@ contract TradePair is ITradePair {
         int256 shortTotalAssetsValue = shortTotalAssets * price / ASSET_MULTIPLIER;
 
         return longTotalAssetsValue - longOpenInterest + shortOpenInterest - shortTotalAssetsValue;
+    }
+
+    function setMaxFundingRate(int256 rate) external {
+        maxFundingRate = rate;
+
+        emit MaxFundingRateSet(rate);
     }
 
     function _updateCollateral(int256 addedCollateral, int8 direction) internal {

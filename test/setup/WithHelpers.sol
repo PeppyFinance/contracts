@@ -90,6 +90,14 @@ contract WithHelpers is Test {
         return tradePair.borrowFeeIntegral();
     }
 
+    function _tradePair_fundingFeeIntegral() internal view returns (int256) {
+        return tradePair.borrowFeeIntegral();
+    }
+
+    function _tradePair_setMaxFundingRate(int256 rate) internal {
+        tradePair.setMaxFundingRate(rate);
+    }
+
     function _liquidityPool_setMaxBorrowRate(int256 rate) internal {
         liquidityPool.setMaxBorrowRate(rate);
     }
