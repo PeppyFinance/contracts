@@ -198,4 +198,9 @@ contract FeesTest is Test, WithHelpers {
         _openPosition(BOB, 100 ether, SHORT, 5_000_000);
         assertEq(_tradePair_getFundingRate(), 0, "funding rate");
     }
+
+    function test_tradePair_setMaxSkew() public {
+        _tradePair_setMaxSkew(5 * BPS);
+        assertEq(tradePair.maxSkew(), 5 * BPS, "skew");
+    }
 }

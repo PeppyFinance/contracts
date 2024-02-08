@@ -42,7 +42,7 @@ contract TradePair is ITradePair {
     uint256 public lastUpdateTimestamp;
 
     int256 public maxFundingRate; // in BPS (1e6)
-    int256 public maxRelativeSkew; // in BPS (1e6) (for simplicity reasons)
+    int256 public maxSkew; // in BPS (1e6) (for simplicity reasons)
 
     int8 constant LONG = 1;
     int8 constant SHORT = -1;
@@ -208,10 +208,16 @@ contract TradePair is ITradePair {
         return longTotalAssetsValue - longOpenInterest + shortOpenInterest - shortTotalAssetsValue;
     }
 
-    function setMaxFundingRate(int256 rate) external {
-        maxFundingRate = rate;
+    function setMaxFundingRate(int256 maxFundingRate_) external {
+        maxFundingRate = maxFundingRate_;
 
-        emit MaxFundingRateSet(rate);
+        emit MaxFundingRateSet(maxFundingRate_);
+    }
+
+    function setMaxSkew(int256 maxSkew_) external {
+        maxSkew = maxSkew_;
+
+        emit MaxSkewSet(maxSkew_);
     }
 
     function _updateCollateral(int256 addedCollateral, int8 direction) internal {
@@ -305,14 +311,14 @@ contract TradePair is ITradePair {
                 return maxFundingRate;
             }
             int256 relativeSkew = int256(longOpenInterest) * 1e18 / int256(shortOpenInterest);
-            return maxFundingRate * relativeSkew / maxRelativeSkew;
+            return maxFundingRate * relativeSkew / maxSkew;
         }
         if (shortOpenInterest > longOpenInterest) {
             if (longOpenInterest == 0) {
                 return maxFundingRate;
             }
             int256 relativeSkew = int256(shortOpenInterest) * 1e18 / int256(longOpenInterest);
-            return -maxFundingRate * relativeSkew / maxRelativeSkew;
+            return -maxFundingRate * relativeSkew / maxSkew;
         }
         return 0;
     }
