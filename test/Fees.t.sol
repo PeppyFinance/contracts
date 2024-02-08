@@ -32,12 +32,12 @@ contract FeesTest is Test, WithHelpers {
 
         assertEq(_tradePair_getBorrowRate(), 0, "borrow rate before");
 
-        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        _openPosition(BOB, 100 ether, 1, _5X);
 
         // utilization is 50%
         assertEq(_tradePair_getBorrowRate(), 2_500, "borrow rate after");
 
-        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        _openPosition(BOB, 100 ether, 1, _5X);
 
         // utilization is 100%
         assertEq(_tradePair_getBorrowRate(), 5_000, "borrow rate after");
@@ -50,7 +50,7 @@ contract FeesTest is Test, WithHelpers {
 
         assertEq(_tradePair_getBorrowRate(), 0, "borrow rate before");
 
-        _openPosition(BOB, 400 ether, 1, 5_000_000);
+        _openPosition(BOB, 400 ether, 1, _5X);
 
         // utilization is 200%
         assertEq(_tradePair_getBorrowRate(), 10_000, "borrow rate after");
@@ -71,15 +71,15 @@ contract FeesTest is Test, WithHelpers {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
 
-        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        _openPosition(BOB, 100 ether, 1, _5X);
 
         assertEq(_liquidityPool_getBorrowRate(), 3_000, "borrow rate 50% utlization");
 
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_liquidityPool_getBorrowRate(), 5_000, "borrow rate 100% utlization");
 
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_liquidityPool_getBorrowRate(), 7_000, "borrow rate 150% utlization");
     }
@@ -90,15 +90,15 @@ contract FeesTest is Test, WithHelpers {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
 
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_tradePair_getBorrowRate(), 3_000, "borrow rate 50% utlization");
 
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_tradePair_getBorrowRate(), 5_000, "borrow rate 100% utlization");
 
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_tradePair_getBorrowRate(), 7_000, "borrow rate 150% utlization");
     }
@@ -109,9 +109,9 @@ contract FeesTest is Test, WithHelpers {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
 
-        _openPosition(BOB, 99999 ether, LONG, 5_000_000);
+        _openPosition(BOB, 99999 ether, LONG, _5X);
 
-        _openPosition(BOB, 99999 ether, SHORT, 5_000_000);
+        _openPosition(BOB, 99999 ether, SHORT, _5X);
 
         assertEq(_tradePair_getBorrowRate(), 1_000, "borrow rate 0% utlization");
     }
@@ -125,13 +125,13 @@ contract FeesTest is Test, WithHelpers {
 
         assertEq(_tradePair_getBorrowRate(), 1 * BPS, "borrow rate 0% utlization");
 
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_tradePair_borrowFeeIntegral(), 1 * BPS, "borrow fee integral at 1 hours");
         assertEq(_tradePair_getBorrowRate(), 3 * BPS, "borrow rate 50% utlization");
 
         vm.warp(2 hours + 1);
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_tradePair_borrowFeeIntegral(), (1 + 3) * BPS, "borrow fee integral at 2 hours");
     }
@@ -145,7 +145,7 @@ contract FeesTest is Test, WithHelpers {
 
         assertEq(_tradePair_getBorrowRate(), 1 * BPS, "borrow rate 0% utlization");
 
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_tradePair_borrowFeeIntegral(), 1 * BPS, "borrow fee integral at 1 hours");
 
@@ -164,7 +164,7 @@ contract FeesTest is Test, WithHelpers {
 
         assertEq(_tradePair_getBorrowRate(), 1 * BPS, "borrow rate 0% utlization");
 
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         assertEq(_tradePair_borrowFeeIntegral(), 1 * BPS, "borrow fee integral at 1 hours");
         _setPrice(address(collateralToken), 800 ether);
@@ -185,7 +185,7 @@ contract FeesTest is Test, WithHelpers {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
         vm.warp(1 hours + 1);
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
         assertEq(_tradePair_getFundingRate(), 5 * BPS, "funding rate");
     }
 
@@ -194,8 +194,8 @@ contract FeesTest is Test, WithHelpers {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
         vm.warp(1 hours + 1);
-        _openPosition(BOB, 100 ether, LONG, 5_000_000);
-        _openPosition(BOB, 100 ether, SHORT, 5_000_000);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        _openPosition(BOB, 100 ether, SHORT, _5X);
         assertEq(_tradePair_getFundingRate(), 0, "funding rate");
     }
 
