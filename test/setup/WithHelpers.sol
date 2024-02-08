@@ -102,6 +102,10 @@ contract WithHelpers is Test {
         tradePair.setMaxSkew(maxSkew);
     }
 
+    function _tradePair_getPositionDetails(uint256 id) internal view returns (ITradePair.PositionDetails memory) {
+        return tradePair.getPositionDetails(id, priceFeed.prices(address(collateralToken)));
+    }
+
     function _liquidityPool_setMaxBorrowRate(int256 rate) internal {
         liquidityPool.setMaxBorrowRate(rate);
     }
