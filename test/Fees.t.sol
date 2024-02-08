@@ -179,4 +179,13 @@ contract FeesTest is Test, WithHelpers {
         _tradePair_setMaxFundingRate(5 * BPS);
         assertEq(tradePair.maxFundingRate(), 5 * BPS, "funding rate");
     }
+
+    function test_fundingRate_isMaxFundingRateWhenOnlyOneSideHasOpenInterest() public {
+        _tradePair_setMaxFundingRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, 5_000_000);
+        assertEq(_tradePair_getFundingRate(), 5 * BPS, "funding rate");
+    }
 }
