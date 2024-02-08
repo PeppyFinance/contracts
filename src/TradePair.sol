@@ -312,11 +312,6 @@ contract TradePair is ITradePair {
     }
 
     function getBorrowRate() public view returns (int256) {
-        uint256 totalAssets = liquidityPool.totalAssets();
-        // TODO: missing check for totalAssets != 0 or rather sufficient
-        // for opening a position. Should not be in this view function,
-        // but this is where it fails.
-        int256 utilization = excessOpenInterest() * 1e18 / int256(totalAssets);
-        return liquidityPool.maxBorrowRate() * utilization / 1e18;
+        return liquidityPool.getBorrowRate(excessOpenInterest());
     }
 }
