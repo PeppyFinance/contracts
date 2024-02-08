@@ -7,22 +7,12 @@ import "src/LiquidityPool.sol";
 import "src/Controller.sol";
 import "test/setup/MockPriceFeed.sol";
 import "test/setup/constants.sol";
+import "test/setup/WithHelpers.sol";
 import "openzeppelin/token/ERC20/ERC20.sol";
 
-contract Simulation is Test {
-    Controller controller;
-    TradePair tradePair;
-    MockPriceFeed priceFeed;
-    ERC20 collateralToken;
-    LiquidityPool liquidityPool;
-
+contract Simulation is Test, WithHelpers {
     function setUp() public {
-        controller = new Controller();
-        collateralToken = new ERC20("Collateral", "COLL");
-        priceFeed = new MockPriceFeed();
-        liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, collateralToken, priceFeed, liquidityPool);
-        controller.addTradePair(address(tradePair));
+        _deployTestSetup();
     }
 
     function test_deposit() public {
@@ -110,9 +100,13 @@ contract Simulation is Test {
     }
 
     function test_frontrun_traderLoss() public {
+        _logState("before");
+
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        _logState("after");
 
         // Now bobs position is nearly liquidatable
         _setPrice(address(collateralToken), 801 ether);
@@ -131,71 +125,74 @@ contract Simulation is Test {
         assertEq(liquidityPool.previewRedeem(1000 ether), 1049.5 ether, "alice redeemable");
     }
 
-    // Helper functions
+    function test_frontrun_traderProfit() public {
+        _logState("before deposit");
 
-    function _setPrice(address token, int256 price) internal {
-        priceFeed.setPrice(token, price);
+        _deposit(ALICE, 1000 ether);
+        _deposit(DAN, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        _logState("after deposit");
+
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        _logState("after position open");
+
+        // Now bobs position is nearly liquidatable
+        _setPrice(address(collateralToken), 1200 ether);
+        // Alice's shares are still worth 1000 ether
+        assertEq(liquidityPool.previewRedeem(1000 ether), 1000 ether, "alice redeemable");
+        // Dan frontruns
+
+        // position gets liquidated
+        _setPrice(address(collateralToken), 1200 ether);
+        _closePosition(BOB, 1);
+
+        _logState("after position close");
+
+        // Dan withdraws
+        _redeem(DAN, 1000 ether);
+        // Dan made a fast profit
+        assertEq(collateralToken.balanceOf(DAN), 950 ether, "dan collateral balance");
+        // Alice only got half of the profit
+        assertEq(liquidityPool.previewRedeem(1000 ether), 950 ether, "alice claim");
     }
 
-    function _redeem(address trader, uint256 amount) internal {
-        vm.startPrank(trader);
-        liquidityPool.redeem(amount);
-        vm.stopPrank();
-    }
+    function test_frontrun_traderProfit_executed() public {
+        _logState("before deposit");
 
-    function _deposit(address trader, uint256 amount) internal {
-        deal(address(collateralToken), trader, amount);
-        vm.startPrank(trader);
-        collateralToken.approve(address(liquidityPool), amount);
-        liquidityPool.deposit(amount);
-        vm.stopPrank();
-    }
+        _deposit(ALICE, 1000 ether);
+        _deposit(DAN, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
 
-    function _openPosition(address trader, uint256 collateral, int8 direction, uint256 leverage) internal {
-        deal(address(collateralToken), trader, collateral);
+        _logState("after deposit");
 
-        vm.startPrank(trader);
-        collateralToken.approve(address(tradePair), collateral);
-        tradePair.openPosition(collateral, leverage, direction, new bytes[](0));
-        vm.stopPrank();
-    }
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
 
-    function _closePosition(address trader, uint256 id) internal {
-        vm.startPrank(trader);
-        tradePair.closePosition(id, new bytes[](0));
-        vm.stopPrank();
-    }
+        _logState("after position open");
 
-    function _liquidatePosition(uint256 id) internal {
-        tradePair.liquidatePosition(id, new bytes[](0));
-    }
+        // Now bobs position is nearly liquidatable
+        _setPrice(address(collateralToken), 1200 ether);
+        // Alice's shares are still worth 1000 ether
+        assertEq(liquidityPool.previewRedeem(1000 ether), 1000 ether, "alice redeemable");
+        // Dan frontruns
 
-    function _logState() internal {
-        emit log_named_decimal_uint(
-            padStringToLength("alice collateral balance", 30), collateralToken.balanceOf(ALICE), 18
-        );
-        emit log_named_decimal_uint(padStringToLength("alice lp balance", 30), liquidityPool.balanceOf(ALICE), 18);
-        emit log_named_decimal_uint(
-            padStringToLength("lp assets", 30), collateralToken.balanceOf(address(liquidityPool)), 18
-        );
-        emit log_named_decimal_uint(padStringToLength("lp total supply", 30), liquidityPool.totalSupply(), 18);
-    }
+        // position gets liquidated
+        _setPrice(address(collateralToken), 1200 ether);
 
-    function padStringToLength(string memory input, uint256 X) internal pure returns (string memory) {
-        bytes memory inputBytes = bytes(input);
-        if (inputBytes.length >= X) {
-            return input;
-        }
+        // "Frontrunning" occurs:
+        _redeem(DAN, 1000 ether);
 
-        bytes memory padded = new bytes(X);
-        for (uint256 i = 0; i < X; i++) {
-            if (i < inputBytes.length) {
-                padded[i] = inputBytes[i];
-            } else {
-                padded[i] = 0x20; // AS II code for space
-            }
-        }
+        _logState("after dan redeem");
 
-        return string(padded);
+        _closePosition(BOB, 1);
+
+        _logState("after position close");
+
+        // Dan withdraws
+        // Dan made a fast profit
+        assertEq(collateralToken.balanceOf(DAN), 1000 ether, "dan collateral balance");
+        // Alice only got half of the profit
+        assertEq(liquidityPool.previewRedeem(1000 ether), 900 ether, "alice redeemable");
     }
 }

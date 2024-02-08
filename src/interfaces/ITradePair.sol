@@ -3,9 +3,9 @@ pragma solidity ^0.8.18;
 
 struct Position {
     uint256 collateral;
-    int256 entryPrice;
+    int256 entryVolume;
+    int256 assets;
     uint256 entryTimestamp;
-    uint256 leverage; // 1e6 = 1x,
     int256 borrowFeeIntegral;
     int256 fundingFeeIntegral;
     address owner;
@@ -15,9 +15,9 @@ struct Position {
 struct PositionDetails {
     uint256 id;
     uint256 collateral;
-    int256 entryPrice;
+    int256 entryVolume;
+    int256 assets;
     uint256 entryTimestamp;
-    uint256 leverage; // 1e6 = 1x,
     int256 borrowFeeAmount;
     int256 fundingFeeAmount;
     address owner;
@@ -31,6 +31,8 @@ interface ITradePair {
     );
     event PositionClosed(address indexed owner, uint256 id, uint256 value);
     event PositionLiquidated(address indexed owner, uint256 id);
+    event MaxFundingRateSet(int256 maxFundingRate);
+    event MaxSkewSet(int256 maxSkew);
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
         external
@@ -41,6 +43,12 @@ interface ITradePair {
         external
         view
         returns (PositionDetails memory);
-    function excessOpenInterest() external view returns (uint256);
+    function excessOpenInterest() external view returns (int256);
     function updateFeeIntegrals() external;
+    function getBorrowRate() external view returns (int256);
+    function getFundingRate() external view returns (int256);
+    function maxFundingRate() external view returns (int256);
+    function maxSkew() external view returns (int256);
+    function setMaxFundingRate(int256 rate) external;
+    function setMaxSkew(int256 maxSkew) external;
 }

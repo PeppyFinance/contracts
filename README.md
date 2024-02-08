@@ -20,6 +20,14 @@ PYTH_ADDR=pyth-addr
 5. run `anvil` with the `--fork-url` flag and specify which chain should be forked. It is then important
    to match `PYTH_ADDR` with the actual address on the forked chain.
 
+## Testing and logging
+
+You can run foundry tests as usual.
+
+You can optionally log state for simulation tests with:
+
+`LOG_SIMULATION=true forge test`
+
 ## Deployment
 
 - TradePair: [0xFA4DE5e7dfb2bD60C6Fda0f5D575b5F3F9F2e9Ac](https://explorer.evm.testnet.shimmer.network/address/0xFA4DE5e7dfb2bD60C6Fda0f5D575b5F3F9F2e9Ac)
