@@ -25,6 +25,10 @@ contract FeesTest is Test, WithHelpers {
         assertEq(_tradePair_getFundingRate(), 0);
     }
 
+    function test_maxSkew_defaultsToFive() public {
+        assertEq(tradePair.maxSkew(), 5 * BPS);
+    }
+
     function test_borrowRate_nonZero() public {
         _liquidityPool_setMaxBorrowRate(5_000);
         _deposit(ALICE, 1000 ether);

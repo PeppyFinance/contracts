@@ -64,6 +64,7 @@ contract TradePair is ITradePair {
         liquidityPool = _liquidityPool;
         ASSET_MULTIPLIER = int256(10 ** _assetDecimals);
         lastUpdateTimestamp = block.timestamp;
+        maxSkew = 5 * BPS;
     }
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory priceUpdateData_)
