@@ -116,7 +116,7 @@ contract FeesTest is Test, WithHelpers {
         assertEq(_tradePair_getBorrowRate(), 1_000, "borrow rate 0% utlization");
     }
 
-    function test_tradePair_borrowFeeIntegral() public {
+    function test_tradePair_updatesBorrowFeeIntegralOnOpen() public {
         _liquidityPool_setMinBorrowRate(1 * BPS);
         _liquidityPool_setMaxBorrowRate(5 * BPS);
         _deposit(ALICE, 1000 ether);
