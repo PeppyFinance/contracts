@@ -91,7 +91,7 @@ contract WithHelpers is Test {
     }
 
     function _tradePair_fundingFeeIntegral() internal view returns (int256) {
-        return tradePair.borrowFeeIntegral();
+        return tradePair.fundingFeeIntegral();
     }
 
     function _tradePair_setMaxFundingRate(int256 rate) internal {
