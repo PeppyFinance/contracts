@@ -55,4 +55,11 @@ contract FeesTest is Test, WithHelpers {
         // utilization is 200%
         assertEq(_tradePair_getBorrowRate(), 10_000, "borrow rate after");
     }
+
+    function test_borrowRate_minimum() public {
+        assertEq(_liquidityPool_getBorrowRate(), 0, "borrow rate before");
+        _liquidityPool_setMinBorrowRate(500);
+        _liquidityPool_setMaxBorrowRate(5_000);
+        assertEq(_liquidityPool_getBorrowRate(), 500, "borrow rate after");
+    }
 }

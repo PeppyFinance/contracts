@@ -11,6 +11,7 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     using SafeERC20 for IERC20Metadata;
 
     IERC20Metadata public asset;
+    int256 public minBorrowRate; // Hourly
     int256 public maxBorrowRate; // Hourly
     IController public controller;
 
@@ -83,6 +84,12 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         emit MaxBorrowRateSet(rate);
     }
 
+    function setMinBorrowRate(int256 rate) external {
+        minBorrowRate = rate;
+
+        emit MinBorrowRateSet(rate);
+    }
+
     function totalAssets() public view returns (uint256) {
         return IERC20(asset).balanceOf(address(this));
     }
@@ -92,6 +99,16 @@ contract LiquidityPool is ERC20, ILiquidityPool {
             return 0;
         }
         return totalSupply() / totalAssets();
+    }
+
+    function getBorrowRate(int256 excessOpenInterest_) public view returns (int256) {
+        int256 totalAssets = int256(totalAssets());
+
+        if (totalAssets == 0) {
+            return minBorrowRate;
+        }
+
+        return minBorrowRate + ((maxBorrowRate - minBorrowRate) * int256(excessOpenInterest_)) / int256(totalAssets);
     }
 
     function _updateFeeIntegrals() internal {

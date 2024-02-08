@@ -90,6 +90,14 @@ contract WithHelpers is Test {
         liquidityPool.setMaxBorrowRate(rate);
     }
 
+    function _liquidityPool_setMinBorrowRate(int256 rate) internal {
+        liquidityPool.setMinBorrowRate(rate);
+    }
+
+    function _liquidityPool_getBorrowRate() internal view returns (int256) {
+        return liquidityPool.getBorrowRate(tradePair.excessOpenInterest());
+    }
+
     // Log functions
 
     function _logState(string memory message) internal {
