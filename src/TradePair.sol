@@ -129,7 +129,7 @@ contract TradePair is ITradePair {
     }
 
     function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
-        // updateFeeIntegrals();
+        updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
         int256 closePrice = _getPrice(priceUpdateData_);
