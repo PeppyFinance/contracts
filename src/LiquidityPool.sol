@@ -102,13 +102,13 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     }
 
     function getBorrowRate(int256 excessOpenInterest_) public view returns (int256) {
-        int256 totalAssets = int256(totalAssets());
+        int256 _totalAssets = int256(totalAssets());
 
-        if (totalAssets == 0) {
+        if (_totalAssets == 0) {
             return minBorrowRate;
         }
 
-        return minBorrowRate + ((maxBorrowRate - minBorrowRate) * int256(excessOpenInterest_)) / int256(totalAssets);
+        return minBorrowRate + ((maxBorrowRate - minBorrowRate) * int256(excessOpenInterest_)) / int256(_totalAssets);
     }
 
     function _updateFeeIntegrals() internal {
