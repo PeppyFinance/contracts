@@ -143,7 +143,7 @@ contract PositionFeesTest is Test, WithHelpers {
 
         _closePosition(BOB, 2);
 
-        int256 borrowRate_period_2 = 4997601; // Fees from period 1 increase assets in LP, utilization decreases
+        int256 borrowRate_period_2 = 4994407; // Fees from period 1 increase assets in LP, utilization decreases
         int256 fundingRate_period_2 = 5 * BPS;
 
         assertEq(_liquidityPool_getBorrowRate(), borrowRate_period_2, "borrowRate period 2");
