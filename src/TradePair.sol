@@ -308,8 +308,8 @@ contract TradePair is ITradePair {
     }
 
     function updateFeeIntegrals() public {
-        fundingFeeIntegral += getFundingRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
-        borrowFeeIntegral += getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
+        fundingFeeIntegral += unrealizedFundingFeeIntegral();
+        borrowFeeIntegral += unrealizedBorrowFeeIntegral();
         lastUpdateTimestamp = block.timestamp;
     }
 
