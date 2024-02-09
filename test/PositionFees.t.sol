@@ -121,4 +121,51 @@ contract PositionFeesTest is Test, WithHelpers {
             positionDetails.value, 100 ether - uint256(expectedBorrowFeeAmount + expectedFundingFeeAmount), "value"
         );
     }
+
+    function test_positionDetails_twoPeriods() public {
+        _deposit(ALICE, 500 ether);
+        _liquidityPool_setMaxBorrowRate(5 * BPS);
+        _liquidityPool_setMinBorrowRate(1 * BPS);
+        _tradePair_setMaxFundingRate(5 * BPS);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        _openPosition(BOB, 200 ether, SHORT, _5X);
+
+        int256 borrowRate_period_1 = 5 * BPS;
+        int256 fundingRate_period_1 = -2 * BPS;
+
+        assertEq(_liquidityPool_getBorrowRate(), borrowRate_period_1, "borrowRate period 1");
+        assertEq(_tradePair_getFundingRate(), fundingRate_period_1, "fundingRate period 1");
+
+        vm.warp(2 hours + 1);
+
+        _closePosition(BOB, 2);
+
+        int256 borrowRate_period_2 = 4997601; // Fees from period 1 increase assets in LP, utilization decreases
+        int256 fundingRate_period_2 = 5 * BPS;
+
+        assertEq(_liquidityPool_getBorrowRate(), borrowRate_period_2, "borrowRate period 2");
+        assertEq(_tradePair_getFundingRate(), fundingRate_period_2, "fundingRate period 2");
+
+        vm.warp(3 hours + 1);
+
+        ITradePair.PositionDetails memory positionDetails = _tradePair_getPositionDetails(1);
+
+        int256 expectedBorrowFeeAmount = 5 * 100 ether * (borrowRate_period_1 + borrowRate_period_2) / 10000 / BPS;
+        int256 expectedFundingFeeAmount = 5 * 100 ether * (fundingRate_period_1 + fundingRate_period_2) / 10000 / BPS;
+
+        assertEq(positionDetails.collateral, 100 ether, "collateral");
+        assertEq(positionDetails.entryVolume, 500 ether, "entryVolume");
+        assertEq(positionDetails.assets, 0.5 ether, "assets");
+        assertEq(positionDetails.direction, LONG, "direction");
+        assertEq(positionDetails.entryTimestamp, 1 hours + 1, "entryTimestamp");
+        assertEq(positionDetails.borrowFeeAmount, expectedBorrowFeeAmount, "borrowFeeAmount");
+        assertEq(positionDetails.fundingFeeAmount, expectedFundingFeeAmount, "fundingFeeAmount");
+        assertEq(positionDetails.owner, BOB, "owner");
+        assertEq(
+            positionDetails.value, 100 ether - uint256(expectedBorrowFeeAmount + expectedFundingFeeAmount), "value"
+        );
+    }
 }
