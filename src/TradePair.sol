@@ -81,6 +81,7 @@ contract TradePair is ITradePair {
         uint256 id = ++_nextId;
         int256 volume = int256(collateral * leverage / 1e6);
         int256 assets = int256(volume) * ASSET_MULTIPLIER / entryPrice;
+        uint256 openFeeAmount = uint256(openFee * volume / 10_000 / BPS);
 
         positions[id] = Position(
             collateral, volume, assets, block.timestamp, borrowFeeIntegral, fundingFeeIntegral, msg.sender, direction
@@ -92,7 +93,8 @@ contract TradePair is ITradePair {
         _updateTotalAssets(int256(assets), direction);
         _updateCollateral(int256(collateral), direction);
 
-        collateralToken.safeTransferFrom(msg.sender, address(this), collateral);
+        collateralToken.safeTransferFrom(msg.sender, address(this), collateral + openFeeAmount);
+        collateralToken.safeTransfer(address(liquidityPool), openFeeAmount);
 
         syncUnrealizedPnL(priceUpdateData_);
 

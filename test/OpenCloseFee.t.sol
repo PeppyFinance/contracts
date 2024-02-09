@@ -26,12 +26,25 @@ contract OpenCloseFeeTest is Test, WithHelpers {
     }
 
     function test_setting_setOpenFee() public {
-        _tradePair_setOpenFee(100 * BPS);
-        assertEq(tradePair.openFee(), 100 * BPS, "open fee");
+        _tradePair_setOpenFee(10 * BPS);
+        assertEq(tradePair.openFee(), 10 * BPS, "open fee");
     }
 
     function test_setting_setCloseFee() public {
-        _tradePair_setCloseFee(100 * BPS);
-        assertEq(tradePair.closeFee(), 100 * BPS, "close fee");
+        _tradePair_setCloseFee(10 * BPS);
+        assertEq(tradePair.closeFee(), 10 * BPS, "close fee");
+    }
+
+    function test_openFee_transferedToLp() public {
+        _tradePair_setOpenFee(10 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        assertEq(
+            collateralToken.balanceOf(address(liquidityPool)),
+            1000 ether + 100 ether * 10 * 5 / 10_000,
+            "liquidityPool did not receive open fee"
+        );
     }
 }
