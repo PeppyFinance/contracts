@@ -393,4 +393,40 @@ contract FeesTest is Test, WithHelpers {
             _tradePair_unrealizedFundingFeeIntegral(), 0, "unrealized funding fee integral at 3 hours, 0 hours passed"
         );
     }
+
+    function test_totalBorrowFeeIntegral() public {
+        _liquidityPool_setMinBorrowRate(1 * BPS);
+        _liquidityPool_setMaxBorrowRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        assertEq(
+            _tradePair_totalBorrowFeeIntegral(),
+            _tradePair_borrowFeeIntegral() + _tradePair_unrealizedBorrowFeeIntegral(),
+            "total borrow fee integral 0 hours after update"
+        );
+
+        vm.warp(2 hours + 1);
+        assertEq(
+            _tradePair_totalBorrowFeeIntegral(),
+            _tradePair_borrowFeeIntegral() + _tradePair_unrealizedBorrowFeeIntegral(),
+            "total borrow fee integral 1 hours after update"
+        );
+
+        vm.warp(3 hours + 1);
+        assertEq(
+            _tradePair_totalBorrowFeeIntegral(),
+            _tradePair_borrowFeeIntegral() + _tradePair_unrealizedBorrowFeeIntegral(),
+            "total borrow fee integral 2 hours after update"
+        );
+
+        _closePosition(BOB, 1);
+        assertEq(
+            _tradePair_totalBorrowFeeIntegral(),
+            _tradePair_borrowFeeIntegral() + _tradePair_unrealizedBorrowFeeIntegral(),
+            "total borrow fee integral at 3 hours, 0 hours passed"
+        );
+    }
 }
