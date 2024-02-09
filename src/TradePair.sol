@@ -303,6 +303,10 @@ contract TradePair is ITradePair {
         return borrowFeeIntegral + unrealizedBorrowFeeIntegral();
     }
 
+    function totalFundingFeeIntegral() public view returns (int256) {
+        return fundingFeeIntegral + unrealizedFundingFeeIntegral();
+    }
+
     function unrealizedBorrowFeeIntegral() public view returns (int256) {
         return getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
     }

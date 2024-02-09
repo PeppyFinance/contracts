@@ -55,4 +55,5 @@ interface ITradePair {
     function unrealizedBorrowFeeIntegral() external view returns (int256);
     function unrealizedFundingFeeIntegral() external view returns (int256);
     function totalBorrowFeeIntegral() external view returns (int256);
+    function totalFundingFeeIntegral() external view returns (int256);
 }

@@ -429,4 +429,39 @@ contract FeesTest is Test, WithHelpers {
             "total borrow fee integral at 3 hours, 0 hours passed"
         );
     }
+
+    function test_totalFundingFeeIntegral() public {
+        _tradePair_setMaxFundingRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        assertEq(
+            _tradePair_totalFundingFeeIntegral(),
+            _tradePair_fundingFeeIntegral() + _tradePair_unrealizedFundingFeeIntegral(),
+            "total funding fee integral 0 hours after update"
+        );
+
+        vm.warp(2 hours + 1);
+        assertEq(
+            _tradePair_totalFundingFeeIntegral(),
+            _tradePair_fundingFeeIntegral() + _tradePair_unrealizedFundingFeeIntegral(),
+            "total funding fee integral 1 hours after update"
+        );
+
+        vm.warp(3 hours + 1);
+        assertEq(
+            _tradePair_totalFundingFeeIntegral(),
+            _tradePair_fundingFeeIntegral() + _tradePair_unrealizedFundingFeeIntegral(),
+            "total funding fee integral 2 hours after update"
+        );
+
+        _closePosition(BOB, 1);
+        assertEq(
+            _tradePair_totalFundingFeeIntegral(),
+            _tradePair_fundingFeeIntegral() + _tradePair_unrealizedFundingFeeIntegral(),
+            "total funding fee integral at 3 hours, 0 hours passed"
+        );
+    }
 }
