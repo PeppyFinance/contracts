@@ -24,4 +24,14 @@ contract OpenCloseFeeTest is Test, WithHelpers {
             collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool did not receive open fee"
         );
     }
+
+    function test_setting_setOpenFee() public {
+        _tradePair_setOpenFee(100 * BPS);
+        assertEq(tradePair.openFee(), 100 * BPS, "open fee");
+    }
+
+    function test_setting_setCloseFee() public {
+        _tradePair_setCloseFee(100 * BPS);
+        assertEq(tradePair.closeFee(), 100 * BPS, "close fee");
+    }
 }

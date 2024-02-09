@@ -43,6 +43,8 @@ contract TradePair is ITradePair {
 
     int256 public maxFundingRate; // in BPS (1e6)
     int256 public maxSkew; // in BPS (1e6) (for simplicity reasons)
+    int256 public openFee;
+    int256 public closeFee;
 
     int8 constant LONG = 1;
     int8 constant SHORT = -1;
@@ -220,6 +222,18 @@ contract TradePair is ITradePair {
         maxSkew = maxSkew_;
 
         emit MaxSkewSet(maxSkew_);
+    }
+
+    function setOpenFee(int256 openFee_) external {
+        openFee = openFee_;
+
+        emit OpenFeeSet(openFee_);
+    }
+
+    function setCloseFee(int256 closeFee_) external {
+        closeFee = closeFee_;
+
+        emit CloseFeeSet(closeFee_);
     }
 
     function _updateCollateral(int256 addedCollateral, int8 direction) internal {

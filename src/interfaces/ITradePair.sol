@@ -33,6 +33,8 @@ interface ITradePair {
     event PositionLiquidated(address indexed owner, uint256 id);
     event MaxFundingRateSet(int256 maxFundingRate);
     event MaxSkewSet(int256 maxSkew);
+    event OpenFeeSet(int256 openFee);
+    event CloseFeeSet(int256 closeFee);
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
         external
@@ -52,6 +54,8 @@ interface ITradePair {
     function maxSkew() external view returns (int256);
     function setMaxFundingRate(int256 rate) external;
     function setMaxSkew(int256 maxSkew) external;
+    function setOpenFee(int256 fee) external;
+    function setCloseFee(int256 fee) external;
     function unrealizedBorrowFeeIntegral() external view returns (int256);
     function unrealizedFundingFeeIntegral() external view returns (int256);
     function totalBorrowFeeIntegral() external view returns (int256);

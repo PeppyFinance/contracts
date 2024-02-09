@@ -102,6 +102,14 @@ contract WithHelpers is Test {
         tradePair.setMaxSkew(maxSkew);
     }
 
+    function _tradePair_setOpenFee(int256 fee) internal {
+        tradePair.setOpenFee(fee);
+    }
+
+    function _tradePair_setCloseFee(int256 fee) internal {
+        tradePair.setCloseFee(fee);
+    }
+
     function _tradePair_getPositionDetails(uint256 id) internal view returns (ITradePair.PositionDetails memory) {
         return tradePair.getPositionDetails(id, priceFeed.prices(address(collateralToken)));
     }
