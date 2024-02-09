@@ -299,6 +299,14 @@ contract TradePair is ITradePair {
         }
     }
 
+    function unrealizedBorrowFeeIntegral() public view returns (int256) {
+        return getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
+    }
+
+    function unrealizedFundingFeeIntegral() public view returns (int256) {
+        return getFundingRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
+    }
+
     function updateFeeIntegrals() public {
         fundingFeeIntegral += getFundingRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
         borrowFeeIntegral += getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;

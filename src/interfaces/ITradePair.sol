@@ -52,4 +52,6 @@ interface ITradePair {
     function maxSkew() external view returns (int256);
     function setMaxFundingRate(int256 rate) external;
     function setMaxSkew(int256 maxSkew) external;
+    function unrealizedBorrowFeeIntegral() external view returns (int256);
+    function unrealizedFundingFeeIntegral() external view returns (int256);
 }

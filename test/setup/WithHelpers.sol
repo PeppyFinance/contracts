@@ -106,6 +106,14 @@ contract WithHelpers is Test {
         return tradePair.getPositionDetails(id, priceFeed.prices(address(collateralToken)));
     }
 
+    function _tradePair_unrealizedBorrowFeeIntegral() internal view returns (int256) {
+        return tradePair.unrealizedBorrowFeeIntegral();
+    }
+
+    function _tradePair_unrealizedFundingFeeIntegral() internal view returns (int256) {
+        return tradePair.unrealizedFundingFeeIntegral();
+    }
+
     function _liquidityPool_setMaxBorrowRate(int256 rate) internal {
         liquidityPool.setMaxBorrowRate(rate);
     }
