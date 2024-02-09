@@ -89,4 +89,36 @@ contract PositionFeesTest is Test, WithHelpers {
         assertEq(positionDetails.owner, BOB, "owner");
         assertEq(positionDetails.value, 100 ether - uint256(expectedFundingFeeAmount), "value");
     }
+
+    function test_positionDetails_affectedByBothFees() public {
+        _deposit(ALICE, 500 ether);
+        _liquidityPool_setMaxBorrowRate(5 * BPS);
+        _liquidityPool_setMinBorrowRate(1 * BPS);
+        _tradePair_setMaxFundingRate(5 * BPS);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, 1, _5X);
+
+        vm.warp(2 hours + 1);
+        assertEq(_liquidityPool_getBorrowRate(), 5 * BPS, "borrowRate is at max");
+        assertEq(_tradePair_getFundingRate(), 5 * BPS, "borrowRate is at max");
+
+        int256 expectedBorrowFeeAmount = 5 * 100 ether * 5 / 10000;
+        int256 expectedFundingFeeAmount = 5 * 100 ether * 5 / 10000;
+
+        ITradePair.PositionDetails memory positionDetails = _tradePair_getPositionDetails(1);
+
+        assertEq(positionDetails.collateral, 100 ether, "collateral");
+        assertEq(positionDetails.entryVolume, 500 ether, "entryVolume");
+        assertEq(positionDetails.assets, 0.5 ether, "assets");
+        assertEq(positionDetails.direction, LONG, "direction");
+        assertEq(positionDetails.entryTimestamp, 1 hours + 1, "entryTimestamp");
+        assertEq(positionDetails.borrowFeeAmount, expectedBorrowFeeAmount, "borrowFeeAmount");
+        assertEq(positionDetails.fundingFeeAmount, expectedFundingFeeAmount, "fundingFeeAmount");
+        assertEq(positionDetails.owner, BOB, "owner");
+        assertEq(
+            positionDetails.value, 100 ether - uint256(expectedBorrowFeeAmount + expectedFundingFeeAmount), "value"
+        );
+    }
 }
