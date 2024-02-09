@@ -35,6 +35,7 @@ interface ITradePair {
     event MaxSkewSet(int256 maxSkew);
     event OpenFeeSet(int256 openFee);
     event CloseFeeSet(int256 closeFee);
+    event CloseFeePaid(uint256 amount);
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
         external

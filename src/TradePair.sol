@@ -108,28 +108,31 @@ contract TradePair is ITradePair {
         int256 closePrice = _getPrice(priceUpdateData_);
         uint256 value = _getValue(id, closePrice);
         require(value > 0, "Position is liquidatable");
+        uint256 closeFeeAmount = uint256(closeFee) * value / 10_000 / uint256(BPS);
+        uint256 valueAfterFee = value - closeFeeAmount;
 
         _updateOpenInterest(-1 * position.entryVolume, position.direction);
         _updateTotalAssets(-1 * int256(position.assets), position.direction);
         _updateCollateral(-1 * int256(position.collateral), position.direction);
 
-        if (value > position.collateral) {
+        if (valueAfterFee > position.collateral) {
             // Position is profitable.
             // Make sure that tradePair has enough balance:
             uint256 balance = collateralToken.balanceOf(address(this));
-            if (balance < value) {
-                liquidityPool.requestPayout(value - balance);
+            if (balance < valueAfterFee) {
+                liquidityPool.requestPayout(valueAfterFee - balance);
             }
         } else {
             // Position is not profitable. Transfer PnL and fee to LP.
-            collateralToken.safeTransfer(address(liquidityPool), position.collateral - value);
+            collateralToken.safeTransfer(address(liquidityPool), position.collateral - valueAfterFee);
         }
         // In all cases, owner receives the (leftover) value.
-        collateralToken.safeTransfer(msg.sender, value);
+        collateralToken.safeTransfer(msg.sender, valueAfterFee);
 
         _dropPosition(id, position.owner);
         syncUnrealizedPnL(priceUpdateData_);
         emit PositionClosed(position.owner, id, value);
+        emit CloseFeePaid(closeFeeAmount);
     }
 
     function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {

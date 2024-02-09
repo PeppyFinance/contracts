@@ -47,4 +47,20 @@ contract OpenCloseFeeTest is Test, WithHelpers {
             "liquidityPool did not receive open fee"
         );
     }
+
+    function test_closeFee_transferedToLp() public {
+        _tradePair_setCloseFee(10 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        _setPrice(address(collateralToken), 1000 ether);
+        _closePosition(BOB, 1);
+
+        assertEq(
+            collateralToken.balanceOf(address(liquidityPool)),
+            1000 ether + 100 ether * 10 / 10_000,
+            "liquidityPool did not receive close fee"
+        );
+    }
 }
