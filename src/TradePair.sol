@@ -171,11 +171,6 @@ contract TradePair is ITradePair {
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
 
-        console2.log("position.borrowFeeIntegral", position.borrowFeeIntegral);
-        console2.log("totalBorrowFeeIntegral()", totalBorrowFeeIntegral());
-        console2.log("position.fundingFeeIntegral", position.fundingFeeIntegral);
-        console2.log("totalFundingFeeIntegral()", totalFundingFeeIntegral());
-
         return PositionDetails(
             id,
             position.collateral,
