@@ -14,4 +14,14 @@ contract OpenCloseFeeTest is Test, WithHelpers {
     function setUp() public {
         _deployTestSetup();
     }
+
+    function test_openFee_zero() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+
+        assertEq(
+            collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool did not receive open fee"
+        );
+    }
 }
