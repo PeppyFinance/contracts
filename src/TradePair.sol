@@ -170,14 +170,15 @@ contract TradePair is ITradePair {
     function getPositionDetails(uint256 id, int256 price) public view returns (PositionDetails memory) {
         Position storage position = positions[id];
         require(position.owner != address(0), "Position does not exist");
+
         return PositionDetails(
             id,
             position.collateral,
             position.entryVolume,
             position.assets,
             position.entryTimestamp,
-            (borrowFeeIntegral - position.borrowFeeIntegral) * position.entryVolume / 1e6 / 1 hours,
-            (fundingFeeIntegral - position.fundingFeeIntegral) * position.entryVolume / 1e6 / 1 hours,
+            (totalBorrowFeeIntegral() - position.borrowFeeIntegral) * position.entryVolume / 10_000 / BPS,
+            (totalFundingFeeIntegral() - position.fundingFeeIntegral) * position.entryVolume / 10_000 / BPS,
             position.owner,
             position.direction,
             _getValue(id, price)
@@ -270,8 +271,9 @@ contract TradePair is ITradePair {
 
         int256 assetValue = position.assets * price / ASSET_MULTIPLIER;
         int256 profit = (assetValue - position.entryVolume) * position.direction;
-        int256 borrowFee = (borrowFeeIntegral - position.borrowFeeIntegral) * position.entryVolume / 1e6 / 1 hours;
-        int256 fundingFee = (fundingFeeIntegral - position.fundingFeeIntegral) * position.entryVolume / 1e6 / 1 hours;
+        int256 borrowFee = (totalBorrowFeeIntegral() - position.borrowFeeIntegral) * position.entryVolume / 10_000 / BPS;
+        int256 fundingFee = position.direction * (totalFundingFeeIntegral() - position.fundingFeeIntegral)
+            * position.entryVolume / 10_000 / BPS;
         int256 value = int256(position.collateral) + profit - borrowFee - fundingFee;
 
         // A position can not have a negative value, as "after" liquidation nothing is left.
@@ -299,9 +301,25 @@ contract TradePair is ITradePair {
         }
     }
 
+    function totalBorrowFeeIntegral() public view returns (int256) {
+        return borrowFeeIntegral + unrealizedBorrowFeeIntegral();
+    }
+
+    function totalFundingFeeIntegral() public view returns (int256) {
+        return fundingFeeIntegral + unrealizedFundingFeeIntegral();
+    }
+
+    function unrealizedBorrowFeeIntegral() public view returns (int256) {
+        return getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
+    }
+
+    function unrealizedFundingFeeIntegral() public view returns (int256) {
+        return getFundingRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
+    }
+
     function updateFeeIntegrals() public {
-        fundingFeeIntegral += getFundingRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
-        borrowFeeIntegral += getBorrowRate() * int256(block.timestamp - lastUpdateTimestamp) / 1 hours;
+        fundingFeeIntegral += unrealizedFundingFeeIntegral();
+        borrowFeeIntegral += unrealizedBorrowFeeIntegral();
         lastUpdateTimestamp = block.timestamp;
     }
 

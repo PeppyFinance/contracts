@@ -342,4 +342,126 @@ contract FeesTest is Test, WithHelpers {
         _liquidatePosition(1);
         assertEq(_tradePair_fundingFeeIntegral(), 5 * BPS, "funding fee integral at 2 hours");
     }
+
+    function test_unrealizedBorrowFeeIntegral() public {
+        _liquidityPool_setMinBorrowRate(1 * BPS);
+        _liquidityPool_setMaxBorrowRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        assertEq(_tradePair_unrealizedBorrowFeeIntegral(), 0, "unrealized borrow fee integral 0 hours after update");
+
+        vm.warp(2 hours + 1);
+        assertEq(
+            _tradePair_unrealizedBorrowFeeIntegral(), 3 * BPS, "unrealized borrow fee integral 1 hours after update"
+        );
+
+        vm.warp(3 hours + 1);
+        assertEq(
+            _tradePair_unrealizedBorrowFeeIntegral(), 6 * BPS, "unrealized borrow fee integral 2 hours after update"
+        );
+
+        _closePosition(BOB, 1);
+        assertEq(
+            _tradePair_unrealizedBorrowFeeIntegral(), 0, "unrealized borrow fee integral at 3 hours, 0 hours passed"
+        );
+    }
+
+    function test_unrealizedFundingFeeIntegral() public {
+        _tradePair_setMaxFundingRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        assertEq(_tradePair_unrealizedFundingFeeIntegral(), 0, "unrealized funding fee integral 0 hours after update");
+
+        vm.warp(2 hours + 1);
+        assertEq(
+            _tradePair_unrealizedFundingFeeIntegral(), 5 * BPS, "unrealized funding fee integral 1 hours after update"
+        );
+
+        vm.warp(3 hours + 1);
+        assertEq(
+            _tradePair_unrealizedFundingFeeIntegral(), 10 * BPS, "unrealized funding fee integral 2 hours after update"
+        );
+
+        _closePosition(BOB, 1);
+        assertEq(
+            _tradePair_unrealizedFundingFeeIntegral(), 0, "unrealized funding fee integral at 3 hours, 0 hours passed"
+        );
+    }
+
+    function test_totalBorrowFeeIntegral() public {
+        _liquidityPool_setMinBorrowRate(1 * BPS);
+        _liquidityPool_setMaxBorrowRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        assertEq(
+            _tradePair_totalBorrowFeeIntegral(),
+            _tradePair_borrowFeeIntegral() + _tradePair_unrealizedBorrowFeeIntegral(),
+            "total borrow fee integral 0 hours after update"
+        );
+
+        vm.warp(2 hours + 1);
+        assertEq(
+            _tradePair_totalBorrowFeeIntegral(),
+            _tradePair_borrowFeeIntegral() + _tradePair_unrealizedBorrowFeeIntegral(),
+            "total borrow fee integral 1 hours after update"
+        );
+
+        vm.warp(3 hours + 1);
+        assertEq(
+            _tradePair_totalBorrowFeeIntegral(),
+            _tradePair_borrowFeeIntegral() + _tradePair_unrealizedBorrowFeeIntegral(),
+            "total borrow fee integral 2 hours after update"
+        );
+
+        _closePosition(BOB, 1);
+        assertEq(
+            _tradePair_totalBorrowFeeIntegral(),
+            _tradePair_borrowFeeIntegral() + _tradePair_unrealizedBorrowFeeIntegral(),
+            "total borrow fee integral at 3 hours, 0 hours passed"
+        );
+    }
+
+    function test_totalFundingFeeIntegral() public {
+        _tradePair_setMaxFundingRate(5 * BPS);
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        assertEq(
+            _tradePair_totalFundingFeeIntegral(),
+            _tradePair_fundingFeeIntegral() + _tradePair_unrealizedFundingFeeIntegral(),
+            "total funding fee integral 0 hours after update"
+        );
+
+        vm.warp(2 hours + 1);
+        assertEq(
+            _tradePair_totalFundingFeeIntegral(),
+            _tradePair_fundingFeeIntegral() + _tradePair_unrealizedFundingFeeIntegral(),
+            "total funding fee integral 1 hours after update"
+        );
+
+        vm.warp(3 hours + 1);
+        assertEq(
+            _tradePair_totalFundingFeeIntegral(),
+            _tradePair_fundingFeeIntegral() + _tradePair_unrealizedFundingFeeIntegral(),
+            "total funding fee integral 2 hours after update"
+        );
+
+        _closePosition(BOB, 1);
+        assertEq(
+            _tradePair_totalFundingFeeIntegral(),
+            _tradePair_fundingFeeIntegral() + _tradePair_unrealizedFundingFeeIntegral(),
+            "total funding fee integral at 3 hours, 0 hours passed"
+        );
+    }
 }
