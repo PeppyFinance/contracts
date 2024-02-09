@@ -207,4 +207,47 @@ contract PositionFeesTest is Test, WithHelpers {
             positionDetails.value, 100 ether - uint256(expectedBorrowFeeAmount + expectedFundingFeeAmount), "value"
         );
     }
+
+    function test_position_paysFeesToLp() public {
+        _deposit(ALICE, 500 ether);
+        _liquidityPool_setMaxBorrowRate(5 * BPS);
+        _liquidityPool_setMinBorrowRate(1 * BPS);
+        _tradePair_setMaxFundingRate(5 * BPS);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        vm.warp(1 hours + 1);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+        _openPosition(BOB, 200 ether, SHORT, _5X);
+
+        int256 borrowRate_period_1 = 5 * BPS;
+        int256 fundingRate_period_1 = -2 * BPS;
+
+        assertEq(_liquidityPool_getBorrowRate(), borrowRate_period_1, "borrowRate period 1");
+        assertEq(_tradePair_getFundingRate(), fundingRate_period_1, "fundingRate period 1");
+
+        vm.warp(2 hours + 1);
+
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 500 ether, "lp balance before position 1");
+        uint256 feeAmount_position_1 =
+            uint256(5 * 100 ether * (borrowRate_period_1 + fundingRate_period_1) / 10000 / BPS);
+
+        _closePosition(BOB, 1);
+
+        assertEq(
+            collateralToken.balanceOf(address(liquidityPool)),
+            500 ether + feeAmount_position_1,
+            "lp balance after position 1 closed"
+        );
+
+        uint256 feeAmount_position_2 =
+            uint256(5 * 200 ether * (borrowRate_period_1 - fundingRate_period_1) / 10000 / BPS);
+
+        _closePosition(BOB, 2);
+
+        assertEq(
+            collateralToken.balanceOf(address(liquidityPool)),
+            500 ether + feeAmount_position_1 + feeAmount_position_2,
+            "lp balance after position 2 closed"
+        );
+    }
 }
