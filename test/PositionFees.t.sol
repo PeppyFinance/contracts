@@ -22,7 +22,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _setPrice(address(collateralToken), 1000 ether);
 
         vm.warp(1 hours);
-        _openPosition(BOB, 100 ether, 1, _5X);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         ITradePair.PositionDetails memory positionDetails = _tradePair_getPositionDetails(1);
 
@@ -44,7 +44,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _setPrice(address(collateralToken), 1000 ether);
 
         vm.warp(1 hours + 1);
-        _openPosition(BOB, 100 ether, 1, _5X);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         vm.warp(2 hours + 1);
         assertEq(_liquidityPool_getBorrowRate(), 5 * BPS, "borrowRate is at max");
@@ -70,7 +70,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _setPrice(address(collateralToken), 1000 ether);
 
         vm.warp(1 hours + 1);
-        _openPosition(BOB, 100 ether, 1, _5X);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         vm.warp(2 hours + 1);
         assertEq(_tradePair_getFundingRate(), 5 * BPS, "borrowRate is at max");
@@ -98,7 +98,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _setPrice(address(collateralToken), 1000 ether);
 
         vm.warp(1 hours + 1);
-        _openPosition(BOB, 100 ether, 1, _5X);
+        _openPosition(BOB, 100 ether, LONG, _5X);
 
         vm.warp(2 hours + 1);
         assertEq(_liquidityPool_getBorrowRate(), 5 * BPS, "borrowRate is at max");
