@@ -43,6 +43,8 @@ contract TradePair is ITradePair {
 
     int256 public maxFundingRate; // in BPS (1e6)
     int256 public maxSkew; // in BPS (1e6) (for simplicity reasons)
+    int256 public openFee;
+    int256 public closeFee;
 
     int8 constant LONG = 1;
     int8 constant SHORT = -1;
@@ -79,6 +81,7 @@ contract TradePair is ITradePair {
         uint256 id = ++_nextId;
         int256 volume = int256(collateral * leverage / 1e6);
         int256 assets = int256(volume) * ASSET_MULTIPLIER / entryPrice;
+        uint256 openFeeAmount = uint256(openFee * volume / 10_000 / BPS);
 
         positions[id] = Position(
             collateral, volume, assets, block.timestamp, borrowFeeIntegral, fundingFeeIntegral, msg.sender, direction
@@ -90,7 +93,8 @@ contract TradePair is ITradePair {
         _updateTotalAssets(int256(assets), direction);
         _updateCollateral(int256(collateral), direction);
 
-        collateralToken.safeTransferFrom(msg.sender, address(this), collateral);
+        collateralToken.safeTransferFrom(msg.sender, address(this), collateral + openFeeAmount);
+        collateralToken.safeTransfer(address(liquidityPool), openFeeAmount);
 
         syncUnrealizedPnL(priceUpdateData_);
 
@@ -104,28 +108,31 @@ contract TradePair is ITradePair {
         int256 closePrice = _getPrice(priceUpdateData_);
         uint256 value = _getValue(id, closePrice);
         require(value > 0, "Position is liquidatable");
+        uint256 closeFeeAmount = uint256(closeFee) * value / 10_000 / uint256(BPS);
+        uint256 valueAfterFee = value - closeFeeAmount;
 
         _updateOpenInterest(-1 * position.entryVolume, position.direction);
         _updateTotalAssets(-1 * int256(position.assets), position.direction);
         _updateCollateral(-1 * int256(position.collateral), position.direction);
 
-        if (value > position.collateral) {
+        if (valueAfterFee > position.collateral) {
             // Position is profitable.
             // Make sure that tradePair has enough balance:
             uint256 balance = collateralToken.balanceOf(address(this));
-            if (balance < value) {
-                liquidityPool.requestPayout(value - balance);
+            if (balance < valueAfterFee) {
+                liquidityPool.requestPayout(valueAfterFee - balance);
             }
         } else {
             // Position is not profitable. Transfer PnL and fee to LP.
-            collateralToken.safeTransfer(address(liquidityPool), position.collateral - value);
+            collateralToken.safeTransfer(address(liquidityPool), position.collateral - valueAfterFee);
         }
         // In all cases, owner receives the (leftover) value.
-        collateralToken.safeTransfer(msg.sender, value);
+        collateralToken.safeTransfer(msg.sender, valueAfterFee);
 
         _dropPosition(id, position.owner);
         syncUnrealizedPnL(priceUpdateData_);
         emit PositionClosed(position.owner, id, value);
+        emit CloseFeePaid(closeFeeAmount);
     }
 
     function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
@@ -220,6 +227,18 @@ contract TradePair is ITradePair {
         maxSkew = maxSkew_;
 
         emit MaxSkewSet(maxSkew_);
+    }
+
+    function setOpenFee(int256 openFee_) external {
+        openFee = openFee_;
+
+        emit OpenFeeSet(openFee_);
+    }
+
+    function setCloseFee(int256 closeFee_) external {
+        closeFee = closeFee_;
+
+        emit CloseFeeSet(closeFee_);
     }
 
     function _updateCollateral(int256 addedCollateral, int8 direction) internal {

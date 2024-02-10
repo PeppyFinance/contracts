@@ -48,10 +48,11 @@ contract WithHelpers is Test {
     }
 
     function _openPosition(address trader, uint256 collateral, int8 direction, uint256 leverage) internal {
-        deal(address(collateralToken), trader, collateral);
+        uint256 openFeeAmount = (collateral * uint256(tradePair.openFee())) / 10_000;
+        deal(address(collateralToken), trader, collateral + openFeeAmount);
 
         vm.startPrank(trader);
-        collateralToken.approve(address(tradePair), collateral);
+        collateralToken.approve(address(tradePair), collateral + openFeeAmount);
         tradePair.openPosition(collateral, leverage, direction, new bytes[](0));
         vm.stopPrank();
     }
@@ -100,6 +101,14 @@ contract WithHelpers is Test {
 
     function _tradePair_setMaxSkew(int256 maxSkew) internal {
         tradePair.setMaxSkew(maxSkew);
+    }
+
+    function _tradePair_setOpenFee(int256 fee) internal {
+        tradePair.setOpenFee(fee);
+    }
+
+    function _tradePair_setCloseFee(int256 fee) internal {
+        tradePair.setCloseFee(fee);
     }
 
     function _tradePair_getPositionDetails(uint256 id) internal view returns (ITradePair.PositionDetails memory) {
