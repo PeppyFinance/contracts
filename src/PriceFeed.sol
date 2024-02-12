@@ -5,7 +5,6 @@ import "src/interfaces/IPriceFeed.sol";
 import "pyth-sdk-solidity/IPyth.sol";
 
 contract PriceFeed is IPriceFeed {
-
     IPyth pyth;
     int256 public constant PRICE_PRECISION = 1e18;
 
@@ -26,10 +25,10 @@ contract PriceFeed is IPriceFeed {
 
     function _normalize(PythStructs.Price memory price) internal pure returns (int256) {
         int32 expo = price.expo;
-        int64 priceVal = price.price;f
+        int64 priceVal = price.price;
 
-        require(priceVal >= 0, 'PriceFeed: oracle price is negative.');
-        require(expo <= 0, 'PriceFeed: exponent is not negative.');
+        require(priceVal >= 0, "PriceFeed: oracle price is negative.");
+        require(expo <= 0, "PriceFeed: exponent is not negative.");
 
         uint256 absoluteExpo = uint256(-int256(expo)); // Convert to positive uint256
         int256 normalizedPrice = (priceVal * PRICE_PRECISION) / int256(10 ** absoluteExpo);
@@ -38,7 +37,7 @@ contract PriceFeed is IPriceFeed {
     }
 
     function _getPrice(bytes32 _priceId, bytes[] memory _updateData) internal returns (PythStructs.Price memory) {
-        uint fee = pyth.getUpdateFee(_updateData);
+        uint256 fee = pyth.getUpdateFee(_updateData);
         pyth.updatePriceFeeds{value: fee}(_updateData);
 
         return pyth.getPrice(_priceId);
