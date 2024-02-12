@@ -61,12 +61,12 @@ FNDA:0,LiquidityPool.previewDeposit
 DA:60,70
 DA:61,70
 FN:66,LiquidityPool.redeem
-FNDA:4,LiquidityPool.redeem
-DA:67,4
+FNDA:5,LiquidityPool.redeem
+DA:67,5
 BRDA:67,2,0,-
-BRDA:67,2,1,4
-DA:68,4
-BRDA:68,3,0,-
+BRDA:67,2,1,5
+DA:68,5
+BRDA:68,3,0,1
 BRDA:68,3,1,4
 DA:70,4
 DA:72,4
@@ -106,7 +106,7 @@ FNH:8
 LF:31
 LH:28
 BRF:12
-BRH:8
+BRH:9
 end_of_record
 TN:
 SF:src/PriceFeed.sol

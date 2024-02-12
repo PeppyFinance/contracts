@@ -24,4 +24,10 @@ contract LiquidityPoolTest is Test, WithHelpers {
     function test_previewRedeem_noSupply() public {
         assertEq(liquidityPool.previewRedeem(1), 0);
     }
+
+    function test_redeem_noBalance() public {
+        vm.startPrank(ALICE);
+        vm.expectRevert("LiquidityPool::redeem: Insufficient balance.");
+        liquidityPool.redeem(1);
+    }
 }
