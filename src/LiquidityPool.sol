@@ -40,8 +40,6 @@ contract LiquidityPool is ERC20, ILiquidityPool {
 
         asset.safeTransferFrom(msg.sender, address(this), amount);
 
-        _updateFeeIntegrals();
-
         emit Deposit(msg.sender, amount, shares);
     }
 
@@ -72,8 +70,6 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         _burn(msg.sender, shares);
 
         asset.safeTransfer(msg.sender, assets);
-
-        _updateFeeIntegrals();
 
         emit Redeem(msg.sender, assets, shares);
     }
@@ -112,9 +108,5 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         }
 
         return minBorrowRate + ((maxBorrowRate - minBorrowRate) * int256(excessOpenInterest_)) / int256(_totalAssets);
-    }
-
-    function _updateFeeIntegrals() internal {
-        // tradePair.updateFeeIntegrals();
     }
 }
