@@ -71,6 +71,7 @@ contract TradePair is ITradePair {
     {
         require(leverage >= MIN_LEVERAGE, "TradePair::openPosition: Leverage too low");
         require(leverage <= MAX_LEVERAGE, "TradePair::openPosition: Leverage too high");
+        require(direction == LONG || direction == SHORT, "TradePair::openPosition: Invalid direction");
 
         updateFeeIntegrals();
         int256 entryPrice = _getPrice(priceUpdateData_);

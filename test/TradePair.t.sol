@@ -207,6 +207,23 @@ contract TradePairBasicTest is Test, WithHelpers {
         tradePair.openPosition(100 ether, 100_000_001, LONG, new bytes[](0));
     }
 
+    function test_openPosition_invalidDirection() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        deal(address(collateralToken), BOB, 100 ether);
+
+        vm.startPrank(BOB);
+        collateralToken.approve(address(tradePair), 100 ether);
+        vm.expectRevert("TradePair::openPosition: Invalid direction");
+        tradePair.openPosition(100 ether, _5X, 0, new bytes[](0));
+
+        vm.expectRevert("TradePair::openPosition: Invalid direction");
+        tradePair.openPosition(100 ether, _5X, 2, new bytes[](0));
+
+        vm.expectRevert("TradePair::openPosition: Invalid direction");
+        tradePair.openPosition(100 ether, _5X, -2, new bytes[](0));
+    }
+
     function test_closePosition_notOwner() public {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
