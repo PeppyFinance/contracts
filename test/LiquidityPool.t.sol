@@ -20,4 +20,8 @@ contract LiquidityPoolTest is Test, WithHelpers {
         vm.expectRevert("LiquidityPool::deposit: Amount must be greater than 0");
         liquidityPool.deposit(0);
     }
+
+    function test_previewRedeem_noSupply() public {
+        assertEq(liquidityPool.previewRedeem(1), 0);
+    }
 }

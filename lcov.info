@@ -47,11 +47,11 @@ DA:41,70
 DA:43,70
 DA:45,70
 FN:48,LiquidityPool.previewRedeem
-FNDA:9,LiquidityPool.previewRedeem
-DA:49,13
-BRDA:49,1,0,-
+FNDA:10,LiquidityPool.previewRedeem
+DA:49,14
+BRDA:49,1,0,1
 BRDA:49,1,1,13
-DA:50,0
+DA:50,1
 DA:52,13
 FN:55,LiquidityPool.requestPayout
 FNDA:18,LiquidityPool.requestPayout
@@ -104,9 +104,9 @@ FNDA:74,LiquidityPool._updateFeeIntegrals
 FNF:11
 FNH:8
 LF:31
-LH:27
+LH:28
 BRF:12
-BRH:7
+BRH:8
 end_of_record
 TN:
 SF:src/PriceFeed.sol
