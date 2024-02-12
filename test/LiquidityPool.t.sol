@@ -14,4 +14,10 @@ contract LiquidityPoolTest is Test, WithHelpers {
     function setUp() public {
         _deployTestSetup();
     }
+
+    function test_deposit_invalidAmount() public {
+        vm.startPrank(ALICE);
+        vm.expectRevert("LiquidityPool::deposit: Amount must be greater than 0");
+        liquidityPool.deposit(0);
+    }
 }

@@ -32,7 +32,7 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     }
 
     function deposit(uint256 amount) external {
-        require(amount > 0, "LiquidityPool::deposit: Invalid amount.");
+        require(amount > 0, "LiquidityPool::deposit: Amount must be greater than 0");
 
         uint256 shares = previewDeposit(amount);
 

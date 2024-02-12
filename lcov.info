@@ -37,9 +37,9 @@ end_of_record
 TN:
 SF:src/LiquidityPool.sol
 FN:34,LiquidityPool.deposit
-FNDA:70,LiquidityPool.deposit
-DA:35,70
-BRDA:35,0,0,-
+FNDA:71,LiquidityPool.deposit
+DA:35,71
+BRDA:35,0,0,1
 BRDA:35,0,1,70
 DA:37,70
 DA:39,70
@@ -106,7 +106,7 @@ FNH:8
 LF:31
 LH:27
 BRF:12
-BRH:6
+BRH:7
 end_of_record
 TN:
 SF:src/PriceFeed.sol
