@@ -141,7 +141,7 @@ contract TradePair is ITradePair {
         require(position.owner != address(0), "TradePair::liquidatePosition: Position does not exist");
         int256 closePrice = _getPrice(priceUpdateData_);
 
-        require(_getValue(id, closePrice) <= 0, "Position is not liquidatable");
+        require(_getValue(id, closePrice) <= 0, "TradePair::liquidatePosition: Position is not liquidatable");
 
         _updateOpenInterest(-1 * position.entryVolume, position.direction);
         _updateTotalAssets(-1 * int256(position.assets), position.direction);

@@ -234,4 +234,16 @@ contract TradePairBasicTest is Test, WithHelpers {
         vm.expectRevert("TradePair::liquidatePosition: Position does not exist");
         tradePair.liquidatePosition(1, new bytes[](0));
     }
+
+    function test_liquidatePosition_notLiquidatable() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        _setPrice(address(collateralToken), 1200 ether);
+
+        vm.startPrank(BOB);
+        vm.expectRevert("TradePair::liquidatePosition: Position is not liquidatable");
+        tradePair.liquidatePosition(1, new bytes[](0));
+    }
 }
