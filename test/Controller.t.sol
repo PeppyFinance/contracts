@@ -30,4 +30,10 @@ contract ControllerTest is Test, WithHelpers {
         controller.removeTradePair(address(tradePair));
         assert(!controller.isTradePair(address(tradePair)));
     }
+
+    function test_removeLiquidityPool() public {
+        controller.addLiquidityPool(address(liquidityPool));
+        controller.removeLiquidityPool(address(liquidityPool));
+        assert(!controller.isLiquidityPool(address(liquidityPool)));
+    }
 }
