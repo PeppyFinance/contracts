@@ -64,7 +64,7 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     }
 
     function redeem(uint256 shares) external {
-        require(shares > 0, "LiquidityPool::redeem: Invalid shares.");
+        require(shares > 0, "LiquidityPool::redeem: Shares must be greater than 0.");
         require(balanceOf(msg.sender) >= shares, "LiquidityPool::redeem: Insufficient balance.");
 
         uint256 assets = previewRedeem(shares);

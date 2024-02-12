@@ -30,4 +30,15 @@ contract LiquidityPoolTest is Test, WithHelpers {
         vm.expectRevert("LiquidityPool::redeem: Insufficient balance.");
         liquidityPool.redeem(1);
     }
+
+    function test_redeem_zeroShares() public {
+        vm.startPrank(ALICE);
+        vm.expectRevert("LiquidityPool::redeem: Shares must be greater than 0.");
+        liquidityPool.redeem(0);
+
+        // should throw again even if balance is > 0
+        _deposit(ALICE, 100 ether);
+        vm.expectRevert("LiquidityPool::redeem: Shares must be greater than 0.");
+        liquidityPool.redeem(0);
+    }
 }
