@@ -19,4 +19,9 @@ contract ControllerTest is Test, WithHelpers {
         controller.addTradePair(address(tradePair));
         assert(controller.isTradePair(address(tradePair)));
     }
+
+    function test_addLiquidityPool() public {
+        controller.addLiquidityPool(address(liquidityPool));
+        assert(controller.isLiquidityPool(address(liquidityPool)));
+    }
 }

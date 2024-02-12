@@ -4,8 +4,8 @@ FN:12,Controller.addTradePair
 FNDA:1,Controller.addTradePair
 DA:13,1
 FN:16,Controller.addLiquidityPool
-FNDA:0,Controller.addLiquidityPool
-DA:17,0
+FNDA:1,Controller.addLiquidityPool
+DA:17,1
 FN:20,Controller.removeTradePair
 FNDA:0,Controller.removeTradePair
 DA:21,0
@@ -13,9 +13,9 @@ FN:24,Controller.removeLiquidityPool
 FNDA:0,Controller.removeLiquidityPool
 DA:25,0
 FNF:4
-FNH:1
+FNH:2
 LF:4
-LH:1
+LH:2
 BRF:0
 BRH:0
 end_of_record
