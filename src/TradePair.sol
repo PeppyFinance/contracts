@@ -229,8 +229,6 @@ contract TradePair is ITradePair {
             longCollateral += addedCollateral;
         } else if (direction == SHORT) {
             shortCollateral += addedCollateral;
-        } else {
-            revert("TradePair::_updateCollateral: Invalid direction");
         }
     }
 
@@ -239,8 +237,6 @@ contract TradePair is ITradePair {
             longOpenInterest += addedVolume;
         } else if (direction == SHORT) {
             shortOpenInterest += addedVolume;
-        } else {
-            revert("TradePair::_updateOpenInterest: Invalid direction");
         }
     }
 
@@ -249,8 +245,6 @@ contract TradePair is ITradePair {
             longTotalAssets += addedAssets;
         } else if (direction == SHORT) {
             shortTotalAssets += addedAssets;
-        } else {
-            revert("TradePair::_updateTotalAssets: Invalid direction");
         }
     }
 
