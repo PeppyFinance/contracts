@@ -94,11 +94,14 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         return IERC20(asset).balanceOf(address(this));
     }
 
+    /**
+     * @dev Ratio is denominated in 1e18
+     */
     function ratio() public view returns (uint256) {
         if (totalAssets() == 0) {
             return 0;
         }
-        return totalSupply() / totalAssets();
+        return totalSupply() * 1e18 / totalAssets();
     }
 
     function getBorrowRate(int256 excessOpenInterest_) public view returns (int256) {

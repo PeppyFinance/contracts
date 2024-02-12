@@ -45,4 +45,9 @@ contract LiquidityPoolTest is Test, WithHelpers {
     function test_ratio_noAssets() public {
         assertEq(liquidityPool.ratio(), 0);
     }
+
+    function test_ratio_18_decimals() public {
+        _deposit(ALICE, 100 ether);
+        assertEq(liquidityPool.ratio(), 1 ether);
+    }
 }
