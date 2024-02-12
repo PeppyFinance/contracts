@@ -225,7 +225,13 @@ contract TradePairBasicTest is Test, WithHelpers {
         _setPrice(address(collateralToken), 800 ether);
 
         vm.startPrank(BOB);
-        vm.expectRevert("TradePair::closePosition: Position is liquidatable and can not be closed.");
+        vm.expectRevert("TradePair::closePosition: Position is liquidatable and can not be closed");
         tradePair.closePosition(1, new bytes[](0));
+    }
+
+    function test_liquidatePosition_positionDoesNotExist() public {
+        vm.startPrank(BOB);
+        vm.expectRevert("TradePair::liquidatePosition: Position does not exist");
+        tradePair.liquidatePosition(1, new bytes[](0));
     }
 }

@@ -107,7 +107,7 @@ contract TradePair is ITradePair {
         require(position.owner == msg.sender, "TradePair::closePosition: Only the owner can close the position");
         int256 closePrice = _getPrice(priceUpdateData_);
         uint256 value = _getValue(id, closePrice);
-        require(value > 0, "TradePair::closePosition: Position is liquidatable and can not be closed.");
+        require(value > 0, "TradePair::closePosition: Position is liquidatable and can not be closed");
         uint256 closeFeeAmount = uint256(closeFee) * value / 10_000 / uint256(BPS);
         uint256 valueAfterFee = value - closeFeeAmount;
 
@@ -138,7 +138,7 @@ contract TradePair is ITradePair {
     function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
         updateFeeIntegrals();
         Position storage position = positions[id];
-        require(position.owner != address(0), "Position does not exist");
+        require(position.owner != address(0), "TradePair::liquidatePosition: Position does not exist");
         int256 closePrice = _getPrice(priceUpdateData_);
 
         require(_getValue(id, closePrice) <= 0, "Position is not liquidatable");
