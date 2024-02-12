@@ -41,4 +41,8 @@ contract LiquidityPoolTest is Test, WithHelpers {
         vm.expectRevert("LiquidityPool::redeem: Shares must be greater than 0.");
         liquidityPool.redeem(0);
     }
+
+    function test_ratio_noAssets() public {
+        assertEq(liquidityPool.ratio(), 0);
+    }
 }
