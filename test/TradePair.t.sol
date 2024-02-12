@@ -206,4 +206,14 @@ contract TradePairBasicTest is Test, WithHelpers {
         vm.expectRevert("TradePair::openPosition: Leverage too high");
         tradePair.openPosition(100 ether, 100_000_001, LONG, new bytes[](0));
     }
+
+    function test_closePosition_notOwner() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        vm.startPrank(ALICE);
+        vm.expectRevert("TradePair::closePosition: Only the owner can close the position");
+        tradePair.closePosition(1, new bytes[](0));
+    }
 }
