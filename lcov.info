@@ -234,10 +234,10 @@ BRDA:170,9,1,8
 DA:171,8
 DA:173,132
 FN:177,TradePair.getPositionDetails
-FNDA:6,TradePair.getPositionDetails
-DA:178,6
-DA:179,6
-BRDA:179,10,0,-
+FNDA:7,TradePair.getPositionDetails
+DA:178,7
+DA:179,7
+BRDA:179,10,0,1
 BRDA:179,10,1,6
 DA:181,6
 FN:195,TradePair.totalCollateral
@@ -390,7 +390,7 @@ FNH:25
 LF:137
 LH:132
 BRF:48
-BRH:40
+BRH:41
 end_of_record
 TN:
 SF:test/setup/MockPriceFeed.sol

@@ -229,7 +229,7 @@ contract TradePairBasicTest is Test, WithHelpers {
         tradePair.closePosition(1, new bytes[](0));
     }
 
-    function test_liquidatePosition_positionDoesNotExist() public {
+    function test_liquidatePosition_doesNotExist() public {
         vm.startPrank(BOB);
         vm.expectRevert("TradePair::liquidatePosition: Position does not exist");
         tradePair.liquidatePosition(1, new bytes[](0));
@@ -245,5 +245,11 @@ contract TradePairBasicTest is Test, WithHelpers {
         vm.startPrank(BOB);
         vm.expectRevert("TradePair::liquidatePosition: Position is not liquidatable");
         tradePair.liquidatePosition(1, new bytes[](0));
+    }
+
+    function test_getPositionDetails_doesNotExit() public {
+        vm.startPrank(BOB);
+        vm.expectRevert("TradePair::getPositionDetails: Position does not exist");
+        tradePair.getPositionDetails(1, 1000 ether);
     }
 }

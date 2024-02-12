@@ -176,7 +176,7 @@ contract TradePair is ITradePair {
 
     function getPositionDetails(uint256 id, int256 price) public view returns (PositionDetails memory) {
         Position storage position = positions[id];
-        require(position.owner != address(0), "Position does not exist");
+        require(position.owner != address(0), "TradePair::getPositionDetails: Position does not exist");
 
         return PositionDetails(
             id,
