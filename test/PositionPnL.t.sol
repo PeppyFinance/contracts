@@ -15,7 +15,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _deployTestSetup();
     }
 
-    function test_pnl_profitLong() public {
+    function test_pnl_profit_long() public {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
 
@@ -27,7 +27,7 @@ contract PositionPnLTest is Test, WithHelpers {
         assertEq(collateralToken.balanceOf(BOB), 200 ether, "should have made 100% profit");
     }
 
-    function test_pnl_profitShort() public {
+    function test_pnl_profit_short() public {
         _deposit(ALICE, 1000 ether);
         _setPrice(address(collateralToken), 1000 ether);
 
