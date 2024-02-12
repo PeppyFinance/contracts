@@ -25,6 +25,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), 200 ether, "should have made 100% profit");
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 900 ether, "LP should pay out 100% profit");
     }
 
     function test_pnl_profit_short() public {
@@ -37,6 +38,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), 200 ether, "should have made 100% profit");
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 900 ether, "LP should pay out 100% profit");
     }
 
     function test_pnl_loss_long() public {
@@ -49,6 +51,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), 50 ether, "should have lost 50%");
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 1050 ether, "LP should receive loss");
     }
 
     function test_pnl_loss_short() public {
@@ -61,5 +64,6 @@ contract PositionPnLTest is Test, WithHelpers {
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), 50 ether, "should have lost 50%");
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 1050 ether, "LP should receive loss");
     }
 }
