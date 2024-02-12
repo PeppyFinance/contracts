@@ -48,7 +48,7 @@ contract WithHelpers is Test {
     }
 
     function _openPosition(address trader, uint256 collateral, int8 direction, uint256 leverage) internal {
-        uint256 openFeeAmount = (collateral * uint256(tradePair.openFee())) / 10_000;
+        uint256 openFeeAmount = (collateral * leverage * uint256(tradePair.openFee())) / 10_000 / 1e6 / uint256(BPS);
         deal(address(collateralToken), trader, collateral + openFeeAmount);
 
         vm.startPrank(trader);
