@@ -15,4 +15,8 @@ contract MockPriceFeed is IPriceFeed {
     function setPrice(address _token, int256 _price) external {
         prices[_token] = _price;
     }
+
+    function test_MockPriceFeed() public pure {
+        revert("MockPriceFeed::test_MockPriceFeed: This function excludes this contract from the coverage report.");
+    }
 }
