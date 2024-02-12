@@ -26,7 +26,7 @@ contract PriceFeed is IPriceFeed {
 
     function _normalize(PythStructs.Price memory price) internal pure returns (int256) {
         int32 expo = price.expo;
-        int64 priceVal = price.price;
+        int64 priceVal = price.price;f
 
         require(priceVal >= 0, 'PriceFeed: oracle price is negative.');
         require(expo <= 0, 'PriceFeed: exponent is not negative.');
