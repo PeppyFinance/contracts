@@ -14,4 +14,9 @@ contract ControllerTest is Test, WithHelpers {
     function setUp() public {
         _deployTestSetup();
     }
+
+    function test_addTradePair() public {
+        controller.addTradePair(address(tradePair));
+        assert(controller.isTradePair(address(tradePair)));
+    }
 }
