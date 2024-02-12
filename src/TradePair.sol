@@ -16,10 +16,6 @@ contract TradePair is ITradePair {
     uint256 private _nextId;
 
     mapping(uint256 => Position) public positions;
-    mapping(address => uint256[]) public userPositionIds;
-
-    // needed for efficient deletion of positions in userPositionIds array
-    mapping(address => mapping(uint256 => uint256)) private userPositionIndex;
 
     uint256 public liquidatorReward = 1 * 1e18; // Same decimals as collateral
 
@@ -75,6 +71,7 @@ contract TradePair is ITradePair {
     {
         require(leverage >= MIN_LEVERAGE, "TradePair::openPosition: Leverage too low");
         require(leverage <= MAX_LEVERAGE, "TradePair::openPosition: Leverage too high");
+        require(direction == LONG || direction == SHORT, "TradePair::openPosition: Invalid direction");
 
         updateFeeIntegrals();
         int256 entryPrice = _getPrice(priceUpdateData_);
@@ -86,8 +83,6 @@ contract TradePair is ITradePair {
         positions[id] = Position(
             collateral, volume, assets, block.timestamp, borrowFeeIntegral, fundingFeeIntegral, msg.sender, direction
         );
-        userPositionIds[msg.sender].push(id);
-        userPositionIndex[msg.sender][id] = userPositionIds[msg.sender].length - 1;
 
         _updateOpenInterest(volume, direction);
         _updateTotalAssets(int256(assets), direction);
@@ -107,7 +102,7 @@ contract TradePair is ITradePair {
         require(position.owner == msg.sender, "TradePair::closePosition: Only the owner can close the position");
         int256 closePrice = _getPrice(priceUpdateData_);
         uint256 value = _getValue(id, closePrice);
-        require(value > 0, "Position is liquidatable");
+        require(value > 0, "TradePair::closePosition: Position is liquidatable and can not be closed");
         uint256 closeFeeAmount = uint256(closeFee) * value / 10_000 / uint256(BPS);
         uint256 valueAfterFee = value - closeFeeAmount;
 
@@ -129,7 +124,7 @@ contract TradePair is ITradePair {
         // In all cases, owner receives the (leftover) value.
         collateralToken.safeTransfer(msg.sender, valueAfterFee);
 
-        _dropPosition(id, position.owner);
+        _deletePosition(id);
         syncUnrealizedPnL(priceUpdateData_);
         emit PositionClosed(position.owner, id, value);
         emit CloseFeePaid(closeFeeAmount);
@@ -138,10 +133,10 @@ contract TradePair is ITradePair {
     function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
         updateFeeIntegrals();
         Position storage position = positions[id];
-        require(position.owner != address(0), "Position does not exist");
+        require(position.owner != address(0), "TradePair::liquidatePosition: Position does not exist");
         int256 closePrice = _getPrice(priceUpdateData_);
 
-        require(_getValue(id, closePrice) <= 0, "Position is not liquidatable");
+        require(_getValue(id, closePrice) <= 0, "TradePair::liquidatePosition: Position is not liquidatable");
 
         _updateOpenInterest(-1 * position.entryVolume, position.direction);
         _updateTotalAssets(-1 * int256(position.assets), position.direction);
@@ -150,7 +145,7 @@ contract TradePair is ITradePair {
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
-        _dropPosition(id, position.owner);
+        _deletePosition(id);
         syncUnrealizedPnL(priceUpdateData_);
         emit PositionLiquidated(position.owner, id);
     }
@@ -176,7 +171,7 @@ contract TradePair is ITradePair {
 
     function getPositionDetails(uint256 id, int256 price) public view returns (PositionDetails memory) {
         Position storage position = positions[id];
-        require(position.owner != address(0), "Position does not exist");
+        require(position.owner != address(0), "TradePair::getPositionDetails: Position does not exist");
 
         return PositionDetails(
             id,
@@ -194,18 +189,6 @@ contract TradePair is ITradePair {
 
     function totalCollateral() public view returns (int256) {
         return longCollateral + shortCollateral;
-    }
-
-    function getUserPositionsCount(address user) external view returns (uint256) {
-        return userPositionIds[user].length;
-    }
-
-    function getUserPositionByIndex(address user, uint256 index, int256 price)
-        external
-        view
-        returns (PositionDetails memory)
-    {
-        return getPositionDetails(userPositionIds[user][index], price);
     }
 
     function unrealizedPnL(bytes[] memory priceUpdateData_) public returns (int256) {
@@ -246,8 +229,6 @@ contract TradePair is ITradePair {
             longCollateral += addedCollateral;
         } else if (direction == SHORT) {
             shortCollateral += addedCollateral;
-        } else {
-            revert("TradePair::_updateCollateral: Invalid direction");
         }
     }
 
@@ -256,8 +237,6 @@ contract TradePair is ITradePair {
             longOpenInterest += addedVolume;
         } else if (direction == SHORT) {
             shortOpenInterest += addedVolume;
-        } else {
-            revert("TradePair::_updateOpenInterest: Invalid direction");
         }
     }
 
@@ -266,22 +245,10 @@ contract TradePair is ITradePair {
             longTotalAssets += addedAssets;
         } else if (direction == SHORT) {
             shortTotalAssets += addedAssets;
-        } else {
-            revert("TradePair::_updateTotalAssets: Invalid direction");
         }
     }
 
-    function _dropPosition(uint256 id, address owner) internal {
-        uint256 indexToDelete = userPositionIndex[owner][id];
-        uint256 lastIndex = userPositionIds[owner].length - 1;
-        uint256 lastId = userPositionIds[owner][lastIndex];
-
-        // override item to be removed with last item and remove last item
-        userPositionIds[owner][indexToDelete] = lastId;
-        userPositionIndex[owner][lastId] = indexToDelete;
-        userPositionIds[owner].pop();
-
-        delete userPositionIndex[owner][id];
+    function _deletePosition(uint256 id) internal {
         delete positions[id];
     }
 

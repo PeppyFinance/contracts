@@ -206,4 +206,67 @@ contract TradePairBasicTest is Test, WithHelpers {
         vm.expectRevert("TradePair::openPosition: Leverage too high");
         tradePair.openPosition(100 ether, 100_000_001, LONG, new bytes[](0));
     }
+
+    function test_openPosition_invalidDirection() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        deal(address(collateralToken), BOB, 100 ether);
+
+        vm.startPrank(BOB);
+        collateralToken.approve(address(tradePair), 100 ether);
+        vm.expectRevert("TradePair::openPosition: Invalid direction");
+        tradePair.openPosition(100 ether, _5X, 0, new bytes[](0));
+
+        vm.expectRevert("TradePair::openPosition: Invalid direction");
+        tradePair.openPosition(100 ether, _5X, 2, new bytes[](0));
+
+        vm.expectRevert("TradePair::openPosition: Invalid direction");
+        tradePair.openPosition(100 ether, _5X, -2, new bytes[](0));
+    }
+
+    function test_closePosition_notOwner() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        vm.startPrank(ALICE);
+        vm.expectRevert("TradePair::closePosition: Only the owner can close the position");
+        tradePair.closePosition(1, new bytes[](0));
+    }
+
+    function test_closePosition_liquidatable() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        _setPrice(address(collateralToken), 800 ether);
+
+        vm.startPrank(BOB);
+        vm.expectRevert("TradePair::closePosition: Position is liquidatable and can not be closed");
+        tradePair.closePosition(1, new bytes[](0));
+    }
+
+    function test_liquidatePosition_doesNotExist() public {
+        vm.startPrank(BOB);
+        vm.expectRevert("TradePair::liquidatePosition: Position does not exist");
+        tradePair.liquidatePosition(1, new bytes[](0));
+    }
+
+    function test_liquidatePosition_notLiquidatable() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        _setPrice(address(collateralToken), 1200 ether);
+
+        vm.startPrank(BOB);
+        vm.expectRevert("TradePair::liquidatePosition: Position is not liquidatable");
+        tradePair.liquidatePosition(1, new bytes[](0));
+    }
+
+    function test_getPositionDetails_doesNotExit() public {
+        vm.startPrank(BOB);
+        vm.expectRevert("TradePair::getPositionDetails: Position does not exist");
+        tradePair.getPositionDetails(1, 1000 ether);
+    }
 }

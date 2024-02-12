@@ -32,15 +32,13 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     }
 
     function deposit(uint256 amount) external {
-        require(amount > 0, "LiquidityPool::deposit: Invalid amount.");
+        require(amount > 0, "LiquidityPool::deposit: Amount must be greater than 0");
 
         uint256 shares = previewDeposit(amount);
 
         _mint(msg.sender, shares);
 
         asset.safeTransferFrom(msg.sender, address(this), amount);
-
-        _updateFeeIntegrals();
 
         emit Deposit(msg.sender, amount, shares);
     }
@@ -64,7 +62,7 @@ contract LiquidityPool is ERC20, ILiquidityPool {
     }
 
     function redeem(uint256 shares) external {
-        require(shares > 0, "LiquidityPool::redeem: Invalid shares.");
+        require(shares > 0, "LiquidityPool::redeem: Shares must be greater than 0.");
         require(balanceOf(msg.sender) >= shares, "LiquidityPool::redeem: Insufficient balance.");
 
         uint256 assets = previewRedeem(shares);
@@ -72,8 +70,6 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         _burn(msg.sender, shares);
 
         asset.safeTransfer(msg.sender, assets);
-
-        _updateFeeIntegrals();
 
         emit Redeem(msg.sender, assets, shares);
     }
@@ -94,11 +90,14 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         return IERC20(asset).balanceOf(address(this));
     }
 
+    /**
+     * @dev Ratio is denominated in 1e18
+     */
     function ratio() public view returns (uint256) {
         if (totalAssets() == 0) {
             return 0;
         }
-        return totalSupply() / totalAssets();
+        return totalSupply() * 1e18 / totalAssets();
     }
 
     function getBorrowRate(int256 excessOpenInterest_) public view returns (int256) {
@@ -109,9 +108,5 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         }
 
         return minBorrowRate + ((maxBorrowRate - minBorrowRate) * int256(excessOpenInterest_)) / int256(_totalAssets);
-    }
-
-    function _updateFeeIntegrals() internal {
-        // tradePair.updateFeeIntegrals();
     }
 }
