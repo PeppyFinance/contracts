@@ -107,7 +107,7 @@ contract TradePair is ITradePair {
         require(position.owner == msg.sender, "TradePair::closePosition: Only the owner can close the position");
         int256 closePrice = _getPrice(priceUpdateData_);
         uint256 value = _getValue(id, closePrice);
-        require(value > 0, "Position is liquidatable");
+        require(value > 0, "TradePair::closePosition: Position is liquidatable and can not be closed.");
         uint256 closeFeeAmount = uint256(closeFee) * value / 10_000 / uint256(BPS);
         uint256 valueAfterFee = value - closeFeeAmount;
 

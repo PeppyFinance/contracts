@@ -216,4 +216,16 @@ contract TradePairBasicTest is Test, WithHelpers {
         vm.expectRevert("TradePair::closePosition: Only the owner can close the position");
         tradePair.closePosition(1, new bytes[](0));
     }
+
+    function test_closePosition_liquidatable() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        _setPrice(address(collateralToken), 800 ether);
+
+        vm.startPrank(BOB);
+        vm.expectRevert("TradePair::closePosition: Position is liquidatable and can not be closed.");
+        tradePair.closePosition(1, new bytes[](0));
+    }
 }
