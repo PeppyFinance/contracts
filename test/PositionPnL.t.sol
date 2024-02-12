@@ -38,4 +38,16 @@ contract PositionPnLTest is Test, WithHelpers {
 
         assertEq(collateralToken.balanceOf(BOB), 200 ether, "should have made 100% profit");
     }
+
+    function test_pnl_loss_long() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(address(collateralToken), 1000 ether);
+
+        _openPosition(BOB, 100 ether, LONG, _5X);
+
+        _setPrice(address(collateralToken), 900 ether);
+        _closePosition(BOB, 1);
+
+        assertEq(collateralToken.balanceOf(BOB), 50 ether, "should have lost 50%");
+    }
 }
