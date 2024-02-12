@@ -16,10 +16,6 @@ contract TradePair is ITradePair {
     uint256 private _nextId;
 
     mapping(uint256 => Position) public positions;
-    mapping(address => uint256[]) public userPositionIds;
-
-    // needed for efficient deletion of positions in userPositionIds array
-    mapping(address => mapping(uint256 => uint256)) private userPositionIndex;
 
     uint256 public liquidatorReward = 1 * 1e18; // Same decimals as collateral
 
@@ -86,8 +82,6 @@ contract TradePair is ITradePair {
         positions[id] = Position(
             collateral, volume, assets, block.timestamp, borrowFeeIntegral, fundingFeeIntegral, msg.sender, direction
         );
-        userPositionIds[msg.sender].push(id);
-        userPositionIndex[msg.sender][id] = userPositionIds[msg.sender].length - 1;
 
         _updateOpenInterest(volume, direction);
         _updateTotalAssets(int256(assets), direction);
@@ -129,7 +123,7 @@ contract TradePair is ITradePair {
         // In all cases, owner receives the (leftover) value.
         collateralToken.safeTransfer(msg.sender, valueAfterFee);
 
-        _dropPosition(id, position.owner);
+        _deletePosition(id);
         syncUnrealizedPnL(priceUpdateData_);
         emit PositionClosed(position.owner, id, value);
         emit CloseFeePaid(closeFeeAmount);
@@ -150,7 +144,7 @@ contract TradePair is ITradePair {
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
-        _dropPosition(id, position.owner);
+        _deletePosition(id);
         syncUnrealizedPnL(priceUpdateData_);
         emit PositionLiquidated(position.owner, id);
     }
@@ -194,18 +188,6 @@ contract TradePair is ITradePair {
 
     function totalCollateral() public view returns (int256) {
         return longCollateral + shortCollateral;
-    }
-
-    function getUserPositionsCount(address user) external view returns (uint256) {
-        return userPositionIds[user].length;
-    }
-
-    function getUserPositionByIndex(address user, uint256 index, int256 price)
-        external
-        view
-        returns (PositionDetails memory)
-    {
-        return getPositionDetails(userPositionIds[user][index], price);
     }
 
     function unrealizedPnL(bytes[] memory priceUpdateData_) public returns (int256) {
@@ -271,17 +253,7 @@ contract TradePair is ITradePair {
         }
     }
 
-    function _dropPosition(uint256 id, address owner) internal {
-        uint256 indexToDelete = userPositionIndex[owner][id];
-        uint256 lastIndex = userPositionIds[owner].length - 1;
-        uint256 lastId = userPositionIds[owner][lastIndex];
-
-        // override item to be removed with last item and remove last item
-        userPositionIds[owner][indexToDelete] = lastId;
-        userPositionIndex[owner][lastId] = indexToDelete;
-        userPositionIds[owner].pop();
-
-        delete userPositionIndex[owner][id];
+    function _deletePosition(uint256 id) internal {
         delete positions[id];
     }
 

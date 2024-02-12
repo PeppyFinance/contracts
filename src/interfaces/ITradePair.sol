@@ -42,10 +42,6 @@ interface ITradePair {
         payable;
     function closePosition(uint256 id, bytes[] memory _priceUpdateData) external payable;
     function liquidatePosition(uint256 id, bytes[] memory _priceUpdateData) external payable;
-    function getUserPositionByIndex(address user, uint256 index, int256 price)
-        external
-        view
-        returns (PositionDetails memory);
     function getPositionDetails(uint256 id, int256 price) external view returns (PositionDetails memory);
     function excessOpenInterest() external view returns (int256);
     function updateFeeIntegrals() external;
