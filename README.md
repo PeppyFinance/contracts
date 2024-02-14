@@ -33,3 +33,5 @@ start anvil with `anvil --dump-state 'state/deployment.state`
 run deployment script with './deploy-local.sh', make sure to have a .env file.
 
 Next time, you can load the deployment in you anvil with  `anvil --load-state 'state/deployment.state`
+
+You can get the addresses from *deployments/addresses.ts*
