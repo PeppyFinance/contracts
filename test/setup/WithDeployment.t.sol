@@ -3,7 +3,7 @@ pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
 import "script/WithDeploymentHelpers.s.sol";
-import "script/deploy.s.sol";
+import "script/Deploy.s.sol";
 import "test/setup/constants.sol";
 import "src/auxiliary/FaucetToken.sol";
 
