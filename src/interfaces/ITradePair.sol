@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.18;
 
+import "openzeppelin/token/ERC20/IERC20.sol";
+
 struct Position {
     uint256 collateral;
     int256 entryVolume;
@@ -57,4 +59,5 @@ interface ITradePair {
     function unrealizedFundingFeeIntegral() external view returns (int256);
     function totalBorrowFeeIntegral() external view returns (int256);
     function totalFundingFeeIntegral() external view returns (int256);
+    function collateralToken() external view returns (IERC20);
 }
