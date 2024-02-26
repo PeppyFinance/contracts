@@ -43,7 +43,7 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
         _writeJson("priceFeed", address(priceFeed));
         _writeJson("controller", address(controller));
 
-        string memory addressFile = "deployments/addresses.ts";
+        string memory addressFile = string.concat("deploy/addresses_", _network, ".ts");
 
         string memory addresses = string(
             abi.encodePacked(
