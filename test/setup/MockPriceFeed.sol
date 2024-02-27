@@ -16,7 +16,6 @@ contract MockPriceFeed is IPriceFeed {
         prices[_token] = _price;
     }
 
-    function test_MockPriceFeed() public pure {
-        revert("MockPriceFeed::test_MockPriceFeed: This function excludes this contract from the coverage report.");
-    }
+    /// @dev This function is used to exclude this contract from the coverage report.
+    function test_MockPriceFeed() public pure {}
 }

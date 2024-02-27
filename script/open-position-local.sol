@@ -2,48 +2,34 @@
 pragma solidity ^0.8.18;
 
 import "forge-std/Script.sol";
-import "script/WithDeploymentHelpers.s.sol";
 
 import "src/TradePair.sol";
 import "src/LiquidityPool.sol";
 import "src/Controller.sol";
 import "test/setup/MockPriceFeed.sol";
 import "test/setup/constants.sol";
-import "openzeppelin/token/ERC20/ERC20.sol";
-import "forge-std/Vm.sol";
 import "src/auxiliary/FaucetToken.sol";
+import "forge-std/Vm.sol";
 
-contract DeployPeppy is Script, WithDeploymentHelpers {
-    Controller controller;
-    TradePair tradePair;
-    MockPriceFeed priceFeed;
-    IERC20Metadata collateralToken;
-    LiquidityPool liquidityPool;
-
+/**
+ * @dev Distributes tokens and sets up positions
+ */
+contract SetupLocalScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
-
-        _startJson();
-
         vm.startBroadcast(deployerPrivateKey);
 
-        controller = new Controller();
-        collateralToken = new FaucetToken("Collateral", "COLL");
-        priceFeed = new MockPriceFeed();
+        Controller controller = new Controller();
+        FaucetToken collateralToken = new FaucetToken("Collateral", "COLL");
+        MockPriceFeed priceFeed = new MockPriceFeed();
         priceFeed.setPrice(address(collateralToken), 1e18);
-        liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, collateralToken, priceFeed, liquidityPool, 18);
+        LiquidityPool liquidityPool = new LiquidityPool(controller, collateralToken);
+        TradePair tradePair = new TradePair(controller, collateralToken, priceFeed, liquidityPool, 18);
         controller.addTradePair(address(tradePair));
 
         vm.stopBroadcast();
 
-        _writeJson("liquidityPool", address(liquidityPool));
-        _writeJson("tradePair", address(tradePair));
-        _writeJson("collateralToken", address(collateralToken));
-        _writeJson("priceFeed", address(priceFeed));
-        _writeJson("controller", address(controller));
-
-        string memory addressFile = string.concat("deploy/addresses_", _network, ".ts");
+        string memory addressFile = "deployments/addresses-local.ts";
 
         string memory addresses = string(
             abi.encodePacked(
@@ -65,5 +51,11 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
             )
         );
         vm.writeFile(addressFile, addresses);
+
+        vm.startBroadcast(ALICE_PK);
+        collateralToken.mint(1_000 * 1e18);
+        collateralToken.approve(address(tradePair), 1_000 * 1e18);
+        tradePair.openPosition(1_000 * 1e18, 1_000_000, LONG, new bytes[](0));
+        vm.stopBroadcast();
     }
 }

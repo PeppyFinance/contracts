@@ -14,7 +14,5 @@ contract FaucetToken is ERC20 {
         _burn(msg.sender, _amount);
     }
 
-    function testFaucetToken() public pure {
-        revert("FaucetToken::testFaucetToken: This function is for testing purposes only.");
-    }
+    function test_FaucetToken() public pure {}
 }
