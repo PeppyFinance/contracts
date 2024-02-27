@@ -27,8 +27,6 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        _setCollateralToken();
-
         controller = new Controller();
         collateralToken = new FaucetToken("Collateral", "COLL");
         priceFeed = new MockPriceFeed();
@@ -67,12 +65,5 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
             )
         );
         vm.writeFile(addressFile, addresses);
-    }
-
-    function _setCollateralToken() private {
-        collateralToken = IERC20Metadata(_getConstant("COLLATERAL"));
-
-        // write to json to know which usdc is used for the deployment
-        _writeJson("usdc", address(collateralToken));
     }
 }

@@ -13,7 +13,7 @@ contract DeploymentTest is WithDeployment {
     function test_tradePair_deployed() public {
         assertEq(
             address(ITradePair(_getAddress("tradePair")).collateralToken()),
-            _getConstant("COLLATERAL"),
+            _getAddress("collateralToken"),
             "tradePair.collateralToken should be COLLATERAL"
         );
     }
@@ -21,7 +21,7 @@ contract DeploymentTest is WithDeployment {
     function test_liquidityPool_deployed() public {
         assertEq(
             address(ILiquidityPool(_getAddress("liquidityPool")).asset()),
-            _getConstant("COLLATERAL"),
+            _getAddress("collateralToken"),
             "liquidityPool.asset should be COLLATERAL"
         );
     }
