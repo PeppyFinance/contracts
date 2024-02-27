@@ -23,8 +23,8 @@ contract SetupLocal is Script, WithDeploymentHelpers {
         TradePair tradePair = TradePair(_getAddress("tradePair"));
 
         vm.startBroadcast(vm.envUint("ALICE_PK"));
-        collateralToken.mint(1_000 * 1e18);
-        collateralToken.approve(address(tradePair), 1_000 * 1e18);
+        collateralToken.mint(1_000_000 * 1e18);
+        collateralToken.approve(address(tradePair), 1_000_000 * 1e18);
         tradePair.openPosition(1_000 * 1e18, 1_000_000, LONG, new bytes[](0));
         vm.stopBroadcast();
     }
