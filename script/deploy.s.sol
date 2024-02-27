@@ -21,7 +21,7 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
     LiquidityPool liquidityPool;
 
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
 
         _startJson();
 
@@ -30,7 +30,9 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
         _setCollateralToken();
 
         controller = new Controller();
+        collateralToken = new FaucetToken("Collateral", "COLL");
         priceFeed = new MockPriceFeed();
+        priceFeed.setPrice(address(collateralToken), 1e18);
         liquidityPool = new LiquidityPool(controller, collateralToken);
         tradePair = new TradePair(controller, collateralToken, priceFeed, liquidityPool, 18);
         controller.addTradePair(address(tradePair));

@@ -72,10 +72,8 @@ contract WithDeploymentHelpers is Script {
     }
 
     function _startJson() internal {
-        // forgefmt: disable-start
         _writeJson("network", _network);
-        _writeJson("startBlock", block.number-1);
-        // forgefmt: disable-end
+        _writeJson("startBlock", block.number == 0 ? 0 : block.number - 1);
     }
 
     function _writeJson(string memory key, string memory value) internal {

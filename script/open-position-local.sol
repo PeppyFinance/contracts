@@ -16,7 +16,7 @@ import "forge-std/Vm.sol";
  */
 contract SetupLocalScript is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
         vm.startBroadcast(deployerPrivateKey);
 
         Controller controller = new Controller();
