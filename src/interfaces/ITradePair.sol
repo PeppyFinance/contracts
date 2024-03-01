@@ -34,7 +34,7 @@ interface ITradePair {
     event PositionClosed(
         address indexed owner, uint256 id, uint256 value, int256 borrowFeeAmount, int256 fundingFeeAmount
     );
-    event PositionLiquidated(address indexed owner, uint256 id);
+    event PositionLiquidated(address indexed owner, uint256 id, int256 borrowFeeAmount, int256 fundingFeeAmount);
     event MaxFundingRateSet(int256 maxFundingRate);
     event MaxSkewSet(int256 maxSkew);
     event OpenFeeSet(int256 openFee);

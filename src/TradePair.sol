@@ -146,9 +146,10 @@ contract TradePair is ITradePair {
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
-        _deletePosition(id);
         syncUnrealizedPnL(priceUpdateData_);
-        emit PositionLiquidated(position.owner, id);
+        emit PositionLiquidated(position.owner, id, _getBorrowFeeAmount(position), _getFundingFeeAmount(position));
+
+        _deletePosition(id);
     }
 
     function syncUnrealizedPnL(bytes[] memory priceUpdateData_) public {
