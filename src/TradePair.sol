@@ -257,16 +257,24 @@ contract TradePair is ITradePair {
 
         int256 assetValue = position.assets * price / ASSET_MULTIPLIER;
         int256 profit = (assetValue - position.entryVolume) * position.direction;
-        int256 borrowFee = (totalBorrowFeeIntegral() - position.borrowFeeIntegral) * position.entryVolume / 10_000 / BPS;
-        int256 fundingFee = position.direction * (totalFundingFeeIntegral() - position.fundingFeeIntegral)
-            * position.entryVolume / 10_000 / BPS;
-        int256 value = int256(position.collateral) + profit - borrowFee - fundingFee;
+        int256 borrowFeeAmount = _getBorrowFeeAmount(position);
+        int256 fundingFeeAmount = _getFundingFeeAmount(position);
+        int256 value = int256(position.collateral) + profit - borrowFeeAmount - fundingFeeAmount;
 
         // A position can not have a negative value, as "after" liquidation nothing is left.
         if (value < 0) {
             return 0;
         }
         return uint256(value);
+    }
+
+    function _getBorrowFeeAmount(Position storage position_) internal view returns (int256) {
+        return (totalBorrowFeeIntegral() - position_.borrowFeeIntegral) * position_.entryVolume / 10_000 / BPS;
+    }
+
+    function _getFundingFeeAmount(Position storage position_) internal view returns (int256) {
+        return position_.direction * (totalFundingFeeIntegral() - position_.fundingFeeIntegral) * position_.entryVolume
+            / 10_000 / BPS;
     }
 
     function _getPrice(bytes[] memory _priceUpdateData) internal returns (int256) {
