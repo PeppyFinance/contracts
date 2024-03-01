@@ -93,7 +93,17 @@ contract TradePair is ITradePair {
 
         syncUnrealizedPnL(priceUpdateData_);
 
-        emit PositionOpened(msg.sender, id, entryPrice, collateral, volume, direction);
+        emit PositionOpened({
+            owner: msg.sender,
+            id: id,
+            entryPrice: entryPrice,
+            collateral: collateral,
+            volume: volume,
+            assets: assets,
+            direction: direction,
+            borrowFeeIntegral: borrowFeeIntegral,
+            fundingFeeIntegral: fundingFeeIntegral
+        });
     }
 
     function closePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {

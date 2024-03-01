@@ -29,7 +29,15 @@ interface ITradePair {
     }
 
     event PositionOpened(
-        address indexed owner, uint256 id, int256 entryPrice, uint256 collateral, int256 volume, int8 direction
+        address indexed owner,
+        uint256 id,
+        int256 entryPrice,
+        uint256 collateral,
+        int256 volume,
+        int256 assets,
+        int8 direction,
+        int256 borrowFeeIntegral,
+        int256 fundingFeeIntegral
     );
     event PositionClosed(
         address indexed owner,
