@@ -124,10 +124,11 @@ contract TradePair is ITradePair {
         // In all cases, owner receives the (leftover) value.
         collateralToken.safeTransfer(msg.sender, valueAfterFee);
 
-        _deletePosition(id);
         syncUnrealizedPnL(priceUpdateData_);
-        emit PositionClosed(position.owner, id, value);
+        emit PositionClosed(position.owner, id, value, _getBorrowFeeAmount(position), _getFundingFeeAmount(position));
         emit CloseFeePaid(closeFeeAmount);
+
+        _deletePosition(id);
     }
 
     function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
