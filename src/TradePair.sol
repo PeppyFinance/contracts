@@ -125,7 +125,9 @@ contract TradePair is ITradePair {
         collateralToken.safeTransfer(msg.sender, valueAfterFee);
 
         syncUnrealizedPnL(priceUpdateData_);
-        emit PositionClosed(position.owner, id, value, _getBorrowFeeAmount(position), _getFundingFeeAmount(position));
+        emit PositionClosed(
+            position.owner, id, value, closePrice, _getBorrowFeeAmount(position), _getFundingFeeAmount(position)
+        );
         emit CloseFeePaid(closeFeeAmount);
 
         _deletePosition(id);
