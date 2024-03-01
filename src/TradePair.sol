@@ -93,7 +93,17 @@ contract TradePair is ITradePair {
 
         syncUnrealizedPnL(priceUpdateData_);
 
-        emit PositionOpened(msg.sender, id, entryPrice, collateral, leverage, direction);
+        emit PositionOpened({
+            owner: msg.sender,
+            id: id,
+            entryPrice: entryPrice,
+            collateral: collateral,
+            volume: volume,
+            assets: assets,
+            direction: direction,
+            borrowFeeIntegral: borrowFeeIntegral,
+            fundingFeeIntegral: fundingFeeIntegral
+        });
     }
 
     function closePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
@@ -124,10 +134,13 @@ contract TradePair is ITradePair {
         // In all cases, owner receives the (leftover) value.
         collateralToken.safeTransfer(msg.sender, valueAfterFee);
 
-        _deletePosition(id);
         syncUnrealizedPnL(priceUpdateData_);
-        emit PositionClosed(position.owner, id, value);
+        emit PositionClosed(
+            position.owner, id, value, closePrice, _getBorrowFeeAmount(position), _getFundingFeeAmount(position)
+        );
         emit CloseFeePaid(closeFeeAmount);
+
+        _deletePosition(id);
     }
 
     function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
@@ -145,9 +158,10 @@ contract TradePair is ITradePair {
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
-        _deletePosition(id);
         syncUnrealizedPnL(priceUpdateData_);
-        emit PositionLiquidated(position.owner, id);
+        emit PositionLiquidated(position.owner, id, _getBorrowFeeAmount(position), _getFundingFeeAmount(position));
+
+        _deletePosition(id);
     }
 
     function syncUnrealizedPnL(bytes[] memory priceUpdateData_) public {
@@ -257,16 +271,24 @@ contract TradePair is ITradePair {
 
         int256 assetValue = position.assets * price / ASSET_MULTIPLIER;
         int256 profit = (assetValue - position.entryVolume) * position.direction;
-        int256 borrowFee = (totalBorrowFeeIntegral() - position.borrowFeeIntegral) * position.entryVolume / 10_000 / BPS;
-        int256 fundingFee = position.direction * (totalFundingFeeIntegral() - position.fundingFeeIntegral)
-            * position.entryVolume / 10_000 / BPS;
-        int256 value = int256(position.collateral) + profit - borrowFee - fundingFee;
+        int256 borrowFeeAmount = _getBorrowFeeAmount(position);
+        int256 fundingFeeAmount = _getFundingFeeAmount(position);
+        int256 value = int256(position.collateral) + profit - borrowFeeAmount - fundingFeeAmount;
 
         // A position can not have a negative value, as "after" liquidation nothing is left.
         if (value < 0) {
             return 0;
         }
         return uint256(value);
+    }
+
+    function _getBorrowFeeAmount(Position storage position_) internal view returns (int256) {
+        return (totalBorrowFeeIntegral() - position_.borrowFeeIntegral) * position_.entryVolume / 10_000 / BPS;
+    }
+
+    function _getFundingFeeAmount(Position storage position_) internal view returns (int256) {
+        return position_.direction * (totalFundingFeeIntegral() - position_.fundingFeeIntegral) * position_.entryVolume
+            / 10_000 / BPS;
     }
 
     function _getPrice(bytes[] memory _priceUpdateData) internal returns (int256) {
