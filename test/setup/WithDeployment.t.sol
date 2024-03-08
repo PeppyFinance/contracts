@@ -6,6 +6,7 @@ import "script/WithDeploymentHelpers.s.sol";
 import "script/Deploy.s.sol";
 import "test/setup/constants.sol";
 import "src/auxiliary/FaucetToken.sol";
+import "pyth-sdk-solidity/MockPyth.sol";
 
 contract WithDeployment is WithDeploymentHelpers, Test {
     function testMock() public virtual {}
@@ -22,5 +23,6 @@ contract WithDeployment is WithDeploymentHelpers, Test {
     function _simulateEcosystem() private {
         // Deploy USDC (an ERC20 token) to the collateral address
         vm.etch(_getConstant("COLLATERAL"), address(new FaucetToken("Colletaral", "USDC")).code);
+        vm.etch(_getConstant("PYTH"), address(new MockPyth(10, 1)).code);
     }
 }
