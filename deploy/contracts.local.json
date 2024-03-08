@@ -5,6 +5,5 @@
   "network": "local",
   "priceFeed": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
   "startBlock": 0,
-  "tradePair": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-  "usdc": "0xeCE555d37C37D55a6341b80cF35ef3BC57401d1A"
+  "tradePair": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
 }
