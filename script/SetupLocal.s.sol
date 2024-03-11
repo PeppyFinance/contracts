@@ -16,6 +16,8 @@ import "forge-std/Vm.sol";
  * @dev Distributes tokens and sets up positions
  */
 contract SetupLocal is Script, WithDeploymentHelpers {
+    function testSetupLocal() public {}
+
     function run() external {
         setNetwork("local");
 

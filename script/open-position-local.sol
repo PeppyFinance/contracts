@@ -15,7 +15,7 @@ import "forge-std/Vm.sol";
 /**
  * @dev Distributes tokens and sets up positions
  */
-contract SetupLocalScript is Script, WithDeploymentHelpers {
+contract OpenPositionLocalScript is Script, WithDeploymentHelpers {
     function run() external {
         setNetwork("local");
 
@@ -28,4 +28,6 @@ contract SetupLocalScript is Script, WithDeploymentHelpers {
         tradePair.openPosition(1_000 * 1e18, 1_000_000, LONG, new bytes[](0));
         vm.stopBroadcast();
     }
+
+    function test_OpenPositionLocalScript() public {}
 }
