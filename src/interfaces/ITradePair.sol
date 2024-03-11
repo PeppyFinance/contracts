@@ -75,4 +75,5 @@ interface ITradePair {
     function totalBorrowFeeIntegral() external view returns (int256);
     function totalFundingFeeIntegral() external view returns (int256);
     function collateralToken() external view returns (IERC20);
+    function getUnrealizedPnL(bytes[] memory priceUpdateData_) external payable returns (int256);
 }

@@ -16,7 +16,7 @@ import "src/auxiliary/FaucetToken.sol";
 contract DeployPeppy is Script, WithDeploymentHelpers {
     Controller controller;
     TradePair tradePair;
-    MockPriceFeed priceFeed;
+    IPyth pyth;
     IERC20Metadata collateralToken;
     LiquidityPool liquidityPool;
 
@@ -28,11 +28,11 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
         vm.startBroadcast(deployerPrivateKey);
 
         controller = new Controller();
-        collateralToken = new FaucetToken("Collateral", "COLL");
-        priceFeed = new MockPriceFeed();
-        priceFeed.setPrice(address(collateralToken), 1e18);
+        // collateralToken = new FaucetToken("Collateral", "COLL");
+        collateralToken = IERC20Metadata(_getConstant("COLLATERAL"));
+        pyth = IPyth(_getConstant("PYTH"));
         liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, collateralToken, priceFeed, liquidityPool, 18);
+        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(pyth), PYTH_IOTA_USD);
         controller.addTradePair(address(tradePair));
 
         vm.stopBroadcast();
@@ -40,7 +40,7 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
         _writeJson("liquidityPool", address(liquidityPool));
         _writeJson("tradePair", address(tradePair));
         _writeJson("collateralToken", address(collateralToken));
-        _writeJson("priceFeed", address(priceFeed));
+        _writeJson("pyth", address(pyth));
         _writeJson("controller", address(controller));
 
         string memory addressFile = string.concat("deploy/addresses_", _network, ".ts");
@@ -59,8 +59,8 @@ contract DeployPeppy is Script, WithDeploymentHelpers {
                 "export const collateralTokenAddress = \"",
                 vm.toString(address(collateralToken)),
                 "\";\n",
-                "export const priceFeedAddress = \"",
-                vm.toString(address(priceFeed)),
+                "export const pythAddress = \"",
+                vm.toString(address(pyth)),
                 "\";\n"
             )
         );
