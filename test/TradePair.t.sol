@@ -300,4 +300,9 @@ contract TradePairBasicTest is Test, WithHelpers {
         vm.expectRevert("TradePair::getPositionDetails: Position does not exist");
         tradePair.getPositionDetails(1, 1000 ether);
     }
+
+    function test_setting_setMaxPriceAge() public {
+        _tradePair_setMaxPriceAge(10);
+        assertEq(tradePair.maxPriceAge(), 10, "max price age");
+    }
 }

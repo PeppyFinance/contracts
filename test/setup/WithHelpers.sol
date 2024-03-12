@@ -144,6 +144,10 @@ contract WithHelpers is Test {
         tradePair.setCloseFee(fee);
     }
 
+    function _tradePair_setMaxPriceAge(uint256 maxPriceAge_) internal {
+        tradePair.setMaxPriceAge(maxPriceAge_);
+    }
+
     function _tradePair_getPositionDetails(uint256 id) internal view returns (ITradePair.PositionDetails memory) {
         return tradePair.getPositionDetails(id, int256(_getPrice(PYTH_IOTA_USD)) * 1e30 / 1e8);
     }
