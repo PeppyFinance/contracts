@@ -22,6 +22,8 @@ contract DeployLocal is Script, WithDeploymentHelpers {
         DeployPeppy deployScript = new DeployPeppy();
         deployScript.setNetwork(_network);
         deployScript.run();
+
+        _configureLocal();
     }
 
     function _deployEcosystem() private {
@@ -35,6 +37,17 @@ contract DeployLocal is Script, WithDeploymentHelpers {
         // Set the addresses to the constants
         _writeJson("COLLATERAL", address(collateralToken), _constantsPath);
         _writeJson("PYTH", address(pyth), _constantsPath);
+
+        vm.stopBroadcast();
+    }
+
+    function _configureLocal() private {
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
+        vm.startBroadcast(deployerPrivateKey);
+
+        ITradePair tradePair = ITradePair(_getAddress("tradePair"));
+        // As the local network is out of sync with the real timestamp, max price age has to be high to avoid StalePrice errors
+        tradePair.setMaxPriceAge(42 * 365 days);
 
         vm.stopBroadcast();
     }
