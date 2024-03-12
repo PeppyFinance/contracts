@@ -26,6 +26,7 @@ contract TradePair is ITradePair {
 
     bytes32 public pythId;
     uint256 public priceFeedUpdateFee = 1;
+    uint256 public maxPriceAge = 5;
 
     int256 public longOpenInterest;
     int256 public shortOpenInterest;
@@ -275,6 +276,12 @@ contract TradePair is ITradePair {
         emit CloseFeeSet(closeFee_);
     }
 
+    function setMaxPriceAge(uint256 maxPriceAge_) external {
+        maxPriceAge = maxPriceAge_;
+
+        emit MaxPriceAgeSet(maxPriceAge_);
+    }
+
     function _updateCollateral(int256 addedCollateral, int8 direction) internal {
         if (direction == LONG) {
             longCollateral += addedCollateral;
@@ -332,7 +339,7 @@ contract TradePair is ITradePair {
      * @dev Returns price normalized to global decimals (10^30)
      */
     function _getPrice() internal view returns (int256) {
-        PythStructs.Price memory priceData = pyth.getPriceNoOlderThan(pythId, 0);
+        PythStructs.Price memory priceData = pyth.getPriceNoOlderThan(pythId, maxPriceAge);
         require(priceData.price > 0, "TradePair::_getPrice: Failed to fetch the current priceData.");
         if (priceData.expo > 0) {
             return int256(priceData.price) * int256(10 ** uint256(uint32(priceData.expo))) * GLOBAL_MULTIPLIER;
