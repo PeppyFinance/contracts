@@ -26,7 +26,7 @@ contract TradePair is ITradePair {
 
     bytes32 public pythId;
     uint256 public priceFeedUpdateFee = 1;
-    uint256 public maxPriceAge = 5;
+    uint256 public maxPriceAge = 10;
 
     int256 public longOpenInterest;
     int256 public shortOpenInterest;
