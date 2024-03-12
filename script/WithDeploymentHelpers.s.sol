@@ -49,11 +49,8 @@ contract WithDeploymentHelpers is Script {
     }
 
     function _deployProxy(address implementation, ProxyAdmin proxyAdmin) internal returns (address) {
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
-            address(implementation),
-            address(proxyAdmin),
-            ""
-        );
+        TransparentUpgradeableProxy proxy =
+            new TransparentUpgradeableProxy(address(implementation), address(proxyAdmin), "");
         return address(proxy);
     }
 
@@ -89,6 +86,11 @@ contract WithDeploymentHelpers is Script {
     function _writeJson(string memory key, address value) internal {
         string memory json = vm.serializeAddress(ROOT, key, value);
         vm.writeJson(json, _contractsPath);
+    }
+
+    function _writeJson(string memory key, address value, string memory path) internal {
+        string memory json = vm.serializeAddress(ROOT, key, value);
+        vm.writeJson(json, path);
     }
 
     function _writeJson(string memory key, address proxy, address implementation) internal {

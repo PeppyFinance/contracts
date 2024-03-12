@@ -5,14 +5,14 @@ import "forge-std/Test.sol";
 import "src/TradePair.sol";
 import "src/LiquidityPool.sol";
 import "src/Controller.sol";
-import "test/setup/MockPriceFeed.sol";
+import "pyth-sdk-solidity/MockPyth.sol";
 import "test/setup/constants.sol";
 import "openzeppelin/token/ERC20/ERC20.sol";
 
 contract WithHelpers is Test {
     Controller controller;
     TradePair tradePair;
-    MockPriceFeed priceFeed;
+    MockPyth mockPyth;
     ERC20 collateralToken;
     LiquidityPool liquidityPool;
 
@@ -21,16 +21,47 @@ contract WithHelpers is Test {
     function _deployTestSetup() public {
         controller = new Controller();
         collateralToken = new ERC20("Collateral", "COLL");
-        priceFeed = new MockPriceFeed();
+        mockPyth = new MockPyth(10, 1);
         liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, collateralToken, priceFeed, liquidityPool, 18);
+        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD);
         controller.addTradePair(address(tradePair));
+        deal(address(this), 1 ether);
     }
 
     // Helper functions
+    /// @dev sets price for IOTA/USD
+    function _setPrice(int64 price_) internal {
+        deal(msg.sender, 1 ether);
+        _setPrice(PYTH_IOTA_USD, price_, -8);
+    }
 
-    function _setPrice(address token, int256 price) internal {
-        priceFeed.setPrice(token, price);
+    function _getPythUpdateArrayWithCurrentPrice() internal view returns (bytes[] memory) {
+        bytes memory updateData = MockPyth(address(mockPyth)).createPriceFeedUpdateData(
+            PYTH_IOTA_USD, _getPrice(), 456, -8, 120, 400, uint64(block.timestamp)
+        );
+
+        bytes[] memory updateDataArray = new bytes[](1);
+        updateDataArray[0] = updateData;
+        return updateDataArray;
+    }
+
+    function _setPrice(bytes32 id_, int64 price_, int32 expo_) internal {
+        bytes memory updateData = MockPyth(address(mockPyth)).createPriceFeedUpdateData(
+            id_, price_, 456, expo_, 120, 400, uint64(block.timestamp)
+        );
+
+        bytes[] memory updateDataArray = new bytes[](1);
+        updateDataArray[0] = updateData;
+
+        mockPyth.updatePriceFeeds{value: 1}(updateDataArray);
+    }
+
+    function _getPrice() internal view returns (int64) {
+        return _getPrice(PYTH_IOTA_USD);
+    }
+
+    function _getPrice(bytes32 id) internal view returns (int64) {
+        return mockPyth.getPriceUnsafe(id).price;
     }
 
     function _redeem(address trader, uint256 amount) internal {
@@ -50,29 +81,31 @@ contract WithHelpers is Test {
     function _openPosition(address trader, uint256 collateral, int8 direction, uint256 leverage) internal {
         uint256 openFeeAmount = (collateral * leverage * uint256(tradePair.openFee())) / 10_000 / 1e6 / uint256(BPS);
         deal(address(collateralToken), trader, collateral + openFeeAmount);
+        deal(trader, 1 ether);
 
         vm.startPrank(trader);
         collateralToken.approve(address(tradePair), collateral + openFeeAmount);
-        tradePair.openPosition(collateral, leverage, direction, new bytes[](0));
+        tradePair.openPosition{value: 1}(collateral, leverage, direction, _getPythUpdateArrayWithCurrentPrice());
         vm.stopPrank();
     }
 
     function _closePosition(address trader, uint256 id) internal {
+        deal(trader, 1 ether);
         vm.startPrank(trader);
-        tradePair.closePosition(id, new bytes[](0));
+        tradePair.closePosition{value: 1}(id, _getPythUpdateArrayWithCurrentPrice());
         vm.stopPrank();
     }
 
     function _liquidatePosition(uint256 id) internal {
-        tradePair.liquidatePosition(id, new bytes[](0));
+        tradePair.liquidatePosition{value: 1}(id, _getPythUpdateArrayWithCurrentPrice());
     }
 
     function _tradePair_unrealizedPnL() internal returns (int256) {
-        return tradePair.unrealizedPnL(new bytes[](0));
+        return tradePair.getUnrealizedPnL{value: 1}(_getPythUpdateArrayWithCurrentPrice());
     }
 
     function _tradePair_syncUnrealizedPnL() internal {
-        tradePair.syncUnrealizedPnL(new bytes[](0));
+        tradePair.syncUnrealizedPnL{value: 1}(_getPythUpdateArrayWithCurrentPrice());
     }
 
     function _tradePair_totalCollateral() internal view returns (int256) {
@@ -111,8 +144,12 @@ contract WithHelpers is Test {
         tradePair.setCloseFee(fee);
     }
 
+    function _tradePair_setMaxPriceAge(uint256 maxPriceAge_) internal {
+        tradePair.setMaxPriceAge(maxPriceAge_);
+    }
+
     function _tradePair_getPositionDetails(uint256 id) internal view returns (ITradePair.PositionDetails memory) {
-        return tradePair.getPositionDetails(id, priceFeed.prices(address(collateralToken)));
+        return tradePair.getPositionDetails(id, int256(_getPrice(PYTH_IOTA_USD)) * 1e30 / 1e8);
     }
 
     function _tradePair_unrealizedBorrowFeeIntegral() internal view returns (int256) {

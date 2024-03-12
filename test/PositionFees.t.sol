@@ -19,7 +19,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _deposit(ALICE, 500 ether);
         _liquidityPool_setMaxBorrowRate(5 * BPS);
         _liquidityPool_setMinBorrowRate(1 * BPS);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours);
         _openPosition(BOB, 100 ether, LONG, _5X);
@@ -41,7 +41,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _deposit(ALICE, 500 ether);
         _liquidityPool_setMaxBorrowRate(5 * BPS);
         _liquidityPool_setMinBorrowRate(1 * BPS);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours + 1);
         _openPosition(BOB, 100 ether, LONG, _5X);
@@ -67,7 +67,7 @@ contract PositionFeesTest is Test, WithHelpers {
     function test_positionDetails_affectedByFundingFee() public {
         _deposit(ALICE, 500 ether);
         _tradePair_setMaxFundingRate(5 * BPS);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours + 1);
         _openPosition(BOB, 100 ether, LONG, _5X);
@@ -95,7 +95,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _liquidityPool_setMaxBorrowRate(5 * BPS);
         _liquidityPool_setMinBorrowRate(1 * BPS);
         _tradePair_setMaxFundingRate(5 * BPS);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours + 1);
         _openPosition(BOB, 100 ether, LONG, _5X);
@@ -127,7 +127,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _liquidityPool_setMaxBorrowRate(5 * BPS);
         _liquidityPool_setMinBorrowRate(1 * BPS);
         _tradePair_setMaxFundingRate(5 * BPS);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours + 1);
         _openPosition(BOB, 100 ether, LONG, _5X);
@@ -174,7 +174,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _liquidityPool_setMaxBorrowRate(5 * BPS);
         _liquidityPool_setMinBorrowRate(1 * BPS);
         _tradePair_setMaxFundingRate(5 * BPS);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours + 1);
         _openPosition(BOB, 100 ether, LONG, _5X);
@@ -213,7 +213,7 @@ contract PositionFeesTest is Test, WithHelpers {
         _liquidityPool_setMaxBorrowRate(5 * BPS);
         _liquidityPool_setMinBorrowRate(1 * BPS);
         _tradePair_setMaxFundingRate(5 * BPS);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours + 1);
         _openPosition(BOB, 100 ether, LONG, _5X);

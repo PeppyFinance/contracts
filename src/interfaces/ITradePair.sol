@@ -52,6 +52,7 @@ interface ITradePair {
     event MaxSkewSet(int256 maxSkew);
     event OpenFeeSet(int256 openFee);
     event CloseFeeSet(int256 closeFee);
+    event MaxPriceAgeSet(uint256 maxPriceAge);
     event CloseFeePaid(uint256 amount);
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
@@ -70,9 +71,11 @@ interface ITradePair {
     function setMaxSkew(int256 maxSkew) external;
     function setOpenFee(int256 fee) external;
     function setCloseFee(int256 fee) external;
+    function setMaxPriceAge(uint256 maxPriceAge) external;
     function unrealizedBorrowFeeIntegral() external view returns (int256);
     function unrealizedFundingFeeIntegral() external view returns (int256);
     function totalBorrowFeeIntegral() external view returns (int256);
     function totalFundingFeeIntegral() external view returns (int256);
     function collateralToken() external view returns (IERC20);
+    function getUnrealizedPnL(bytes[] memory priceUpdateData_) external payable returns (int256);
 }

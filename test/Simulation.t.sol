@@ -30,7 +30,7 @@ contract Simulation is Test, WithHelpers {
 
     function test_openPosition() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "lp assets");
         assertEq(collateralToken.balanceOf(address(tradePair)), 100 ether, "traderPair assets");
@@ -41,11 +41,12 @@ contract Simulation is Test, WithHelpers {
 
     function test_closePosition_profit() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
 
+        vm.warp(2);
         // increase price by 10%
-        _setPrice(address(collateralToken), 1100 ether);
+        _setPrice(1100 * 1e8);
         _closePosition(BOB, 1);
 
         // Bob should have made 50 profit
@@ -60,11 +61,12 @@ contract Simulation is Test, WithHelpers {
 
     function test_closePosition_Loss() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
 
         // decrease price by 10%
-        _setPrice(address(collateralToken), 900 ether);
+        vm.warp(2);
+        _setPrice(900 * 1e8);
         _closePosition(BOB, 1);
 
         // Bob should have lost 50
@@ -79,11 +81,12 @@ contract Simulation is Test, WithHelpers {
 
     function test_closePosition_Liquidation() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
 
         // decrease price by 50%
-        _setPrice(address(collateralToken), 500 ether);
+        vm.warp(2);
+        _setPrice(500 * 1e8);
         _liquidatePosition(1);
 
         // Bob should have lost everything
@@ -103,19 +106,21 @@ contract Simulation is Test, WithHelpers {
         _logState("before");
 
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
 
         _logState("after");
 
         // Now bobs position is nearly liquidatable
-        _setPrice(address(collateralToken), 801 ether);
+        vm.warp(2);
+        _setPrice(801 * 1e8);
         // Alice's shares are still worth 1000 ether
         assertEq(liquidityPool.previewRedeem(1000 ether), 1000 ether, "alice redeemable");
         // Dan frontruns
         _deposit(DAN, 1000 ether);
         // position gets liquidated
-        _setPrice(address(collateralToken), 800 ether);
+        vm.warp(3);
+        _setPrice(800 * 1e8);
         _liquidatePosition(1);
         // Dan withdraws
         _redeem(DAN, 1000 ether);
@@ -130,7 +135,7 @@ contract Simulation is Test, WithHelpers {
 
         _deposit(ALICE, 1000 ether);
         _deposit(DAN, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         _logState("after deposit");
 
@@ -139,13 +144,15 @@ contract Simulation is Test, WithHelpers {
         _logState("after position open");
 
         // Now bobs position is nearly liquidatable
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
         // Alice's shares are still worth 1000 ether
         assertEq(liquidityPool.previewRedeem(1000 ether), 1000 ether, "alice redeemable");
         // Dan frontruns
 
         // position gets liquidated
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(3);
+        _setPrice(1200 * 1e8);
         _closePosition(BOB, 1);
 
         _logState("after position close");
@@ -163,7 +170,7 @@ contract Simulation is Test, WithHelpers {
 
         _deposit(ALICE, 1000 ether);
         _deposit(DAN, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         _logState("after deposit");
 
@@ -172,13 +179,15 @@ contract Simulation is Test, WithHelpers {
         _logState("after position open");
 
         // Now bobs position is nearly liquidatable
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
         // Alice's shares are still worth 1000 ether
         assertEq(liquidityPool.previewRedeem(1000 ether), 1000 ether, "alice redeemable");
         // Dan frontruns
 
         // position gets liquidated
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(3);
+        _setPrice(1200 * 1e8);
 
         // "Frontrunning" occurs:
         _redeem(DAN, 1000 ether);

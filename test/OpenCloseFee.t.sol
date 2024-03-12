@@ -17,7 +17,7 @@ contract OpenCloseFeeTest is Test, WithHelpers {
 
     function test_openFee_zero() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
 
         assertEq(
@@ -38,7 +38,7 @@ contract OpenCloseFeeTest is Test, WithHelpers {
     function test_openFee_transferedToLp() public {
         _tradePair_setOpenFee(10 * BPS);
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
 
         assertEq(
@@ -51,10 +51,10 @@ contract OpenCloseFeeTest is Test, WithHelpers {
     function test_closeFee_transferedToLp() public {
         _tradePair_setCloseFee(10 * BPS);
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
 
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(

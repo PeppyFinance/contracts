@@ -7,7 +7,7 @@ import "src/interfaces/IController.sol";
 import "src/interfaces/IPriceFeed.sol";
 import "src/interfaces/ILiquidityPool.sol";
 import "src/interfaces/ITradePair.sol";
-
+import "pyth-sdk-solidity/IPyth.sol";
 import "forge-std/console2.sol";
 
 contract TradePair is ITradePair {
@@ -20,9 +20,13 @@ contract TradePair is ITradePair {
     uint256 public liquidatorReward = 1 * 1e18; // Same decimals as collateral
 
     IController public controller;
-    IPriceFeed public priceFeed;
     ILiquidityPool public liquidityPool;
     IERC20 public collateralToken;
+    IPyth public pyth;
+
+    bytes32 public pythId;
+    uint256 public priceFeedUpdateFee = 1;
+    uint256 public maxPriceAge = 10;
 
     int256 public longOpenInterest;
     int256 public shortOpenInterest;
@@ -45,39 +49,50 @@ contract TradePair is ITradePair {
     int8 constant LONG = 1;
     int8 constant SHORT = -1;
     int256 immutable ASSET_MULTIPLIER;
+    int256 immutable COLLATERAL_MULTIPLIER;
+    int256 GLOBAL_MULTIPLIER = 10 ** 30;
 
     uint256 MIN_LEVERAGE = 1e6;
     uint256 MAX_LEVERAGE = 100 * 1e6;
 
     constructor(
-        IController _controller,
-        IERC20 _collateralToken,
-        IPriceFeed _priceFeed,
-        ILiquidityPool _liquidityPool,
-        uint8 _assetDecimals
+        IController controller_,
+        ILiquidityPool liquidityPool_,
+        uint8 assetDecimals_,
+        uint8 collateralDecimals_,
+        address pyth_,
+        bytes32 pythId_
     ) {
-        controller = _controller;
-        collateralToken = _collateralToken;
-        priceFeed = _priceFeed;
-        liquidityPool = _liquidityPool;
-        ASSET_MULTIPLIER = int256(10 ** _assetDecimals);
+        controller = controller_;
+        pyth = IPyth(pyth_);
+        pythId = pythId_;
+        liquidityPool = liquidityPool_;
+        collateralToken = liquidityPool.asset();
+        ASSET_MULTIPLIER = int256(10 ** assetDecimals_);
+        COLLATERAL_MULTIPLIER = int256(10 ** collateralDecimals_);
         lastUpdateTimestamp = block.timestamp;
         maxSkew = 5 * BPS;
+    }
+
+    modifier updatePriceFeeds(bytes[] memory priceUpdateData_) {
+        pyth.updatePriceFeeds{value: priceFeedUpdateFee}(priceUpdateData_);
+        _;
     }
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory priceUpdateData_)
         external
         payable
+        updatePriceFeeds(priceUpdateData_)
     {
         require(leverage >= MIN_LEVERAGE, "TradePair::openPosition: Leverage too low");
         require(leverage <= MAX_LEVERAGE, "TradePair::openPosition: Leverage too high");
         require(direction == LONG || direction == SHORT, "TradePair::openPosition: Invalid direction");
 
         updateFeeIntegrals();
-        int256 entryPrice = _getPrice(priceUpdateData_);
+        int256 entryPrice = _getPrice();
         uint256 id = ++_nextId;
         int256 volume = int256(collateral * leverage / 1e6);
-        int256 assets = int256(volume) * ASSET_MULTIPLIER / entryPrice;
+        int256 assets = int256(volume) * ASSET_MULTIPLIER * GLOBAL_MULTIPLIER / entryPrice / COLLATERAL_MULTIPLIER;
         uint256 openFeeAmount = uint256(openFee * volume / 10_000 / BPS);
 
         positions[id] = Position(
@@ -91,7 +106,7 @@ contract TradePair is ITradePair {
         collateralToken.safeTransferFrom(msg.sender, address(this), collateral + openFeeAmount);
         collateralToken.safeTransfer(address(liquidityPool), openFeeAmount);
 
-        syncUnrealizedPnL(priceUpdateData_);
+        _syncUnrealizedPnL();
 
         emit PositionOpened({
             owner: msg.sender,
@@ -106,11 +121,15 @@ contract TradePair is ITradePair {
         });
     }
 
-    function closePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
+    function closePosition(uint256 id, bytes[] memory priceUpdateData_)
+        external
+        payable
+        updatePriceFeeds(priceUpdateData_)
+    {
         updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner == msg.sender, "TradePair::closePosition: Only the owner can close the position");
-        int256 closePrice = _getPrice(priceUpdateData_);
+        int256 closePrice = _getPrice();
         uint256 value = _getValue(id, closePrice);
         require(value > 0, "TradePair::closePosition: Position is liquidatable and can not be closed");
         uint256 closeFeeAmount = uint256(closeFee) * value / 10_000 / uint256(BPS);
@@ -134,7 +153,7 @@ contract TradePair is ITradePair {
         // In all cases, owner receives the (leftover) value.
         collateralToken.safeTransfer(msg.sender, valueAfterFee);
 
-        syncUnrealizedPnL(priceUpdateData_);
+        _syncUnrealizedPnL();
         emit PositionClosed(
             position.owner, id, value, closePrice, _getBorrowFeeAmount(position), _getFundingFeeAmount(position)
         );
@@ -143,11 +162,15 @@ contract TradePair is ITradePair {
         _deletePosition(id);
     }
 
-    function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_) external payable {
+    function liquidatePosition(uint256 id, bytes[] memory priceUpdateData_)
+        external
+        payable
+        updatePriceFeeds(priceUpdateData_)
+    {
         updateFeeIntegrals();
         Position storage position = positions[id];
         require(position.owner != address(0), "TradePair::liquidatePosition: Position does not exist");
-        int256 closePrice = _getPrice(priceUpdateData_);
+        int256 closePrice = _getPrice();
 
         require(_getValue(id, closePrice) <= 0, "TradePair::liquidatePosition: Position is not liquidatable");
 
@@ -158,20 +181,24 @@ contract TradePair is ITradePair {
         collateralToken.safeTransfer(msg.sender, liquidatorReward);
         collateralToken.safeTransfer(address(liquidityPool), position.collateral - liquidatorReward);
 
-        syncUnrealizedPnL(priceUpdateData_);
+        _syncUnrealizedPnL();
         emit PositionLiquidated(position.owner, id, _getBorrowFeeAmount(position), _getFundingFeeAmount(position));
 
         _deletePosition(id);
     }
 
-    function syncUnrealizedPnL(bytes[] memory priceUpdateData_) public {
-        int256 _unrealizedPnL = unrealizedPnL(priceUpdateData_);
+    function syncUnrealizedPnL(bytes[] memory priceUpdateData_) public payable updatePriceFeeds(priceUpdateData_) {
+        _syncUnrealizedPnL();
+    }
+
+    function _syncUnrealizedPnL() internal {
+        int256 unrealizedPnLNow = _getUnrealizedPnL();
         int256 balance = int256(collateralToken.balanceOf(address(this)));
 
         // Target Balance is minimum the total collateral and maximum the total collateral + unrealizedPnL
         int256 targetBalance = totalCollateral();
-        if (_unrealizedPnL > 0) {
-            targetBalance += _unrealizedPnL;
+        if (unrealizedPnLNow > 0) {
+            targetBalance += unrealizedPnLNow;
         }
 
         int256 missingAmount = targetBalance - balance;
@@ -205,11 +232,22 @@ contract TradePair is ITradePair {
         return longCollateral + shortCollateral;
     }
 
-    function unrealizedPnL(bytes[] memory priceUpdateData_) public returns (int256) {
-        int256 price = _getPrice(priceUpdateData_);
+    function getUnrealizedPnL(bytes[] memory priceUpdateData_)
+        external
+        payable
+        updatePriceFeeds(priceUpdateData_)
+        returns (int256)
+    {
+        return _getUnrealizedPnL();
+    }
 
-        int256 longTotalAssetsValue = longTotalAssets * price / ASSET_MULTIPLIER;
-        int256 shortTotalAssetsValue = shortTotalAssets * price / ASSET_MULTIPLIER;
+    function _getUnrealizedPnL() internal view returns (int256) {
+        int256 price = _getPrice();
+
+        int256 longTotalAssetsValue =
+            longTotalAssets * price * COLLATERAL_MULTIPLIER / ASSET_MULTIPLIER / GLOBAL_MULTIPLIER;
+        int256 shortTotalAssetsValue =
+            shortTotalAssets * price * COLLATERAL_MULTIPLIER / ASSET_MULTIPLIER / GLOBAL_MULTIPLIER;
 
         return longTotalAssetsValue - longOpenInterest + shortOpenInterest - shortTotalAssetsValue;
     }
@@ -236,6 +274,12 @@ contract TradePair is ITradePair {
         closeFee = closeFee_;
 
         emit CloseFeeSet(closeFee_);
+    }
+
+    function setMaxPriceAge(uint256 maxPriceAge_) external {
+        maxPriceAge = maxPriceAge_;
+
+        emit MaxPriceAgeSet(maxPriceAge_);
     }
 
     function _updateCollateral(int256 addedCollateral, int8 direction) internal {
@@ -269,7 +313,7 @@ contract TradePair is ITradePair {
     function _getValue(uint256 id, int256 price) internal view returns (uint256) {
         Position storage position = positions[id];
 
-        int256 assetValue = position.assets * price / ASSET_MULTIPLIER;
+        int256 assetValue = position.assets * price * COLLATERAL_MULTIPLIER / ASSET_MULTIPLIER / GLOBAL_MULTIPLIER;
         int256 profit = (assetValue - position.entryVolume) * position.direction;
         int256 borrowFeeAmount = _getBorrowFeeAmount(position);
         int256 fundingFeeAmount = _getFundingFeeAmount(position);
@@ -291,10 +335,17 @@ contract TradePair is ITradePair {
             / 10_000 / BPS;
     }
 
-    function _getPrice(bytes[] memory _priceUpdateData) internal returns (int256) {
-        int256 price = priceFeed.getPrice(address(liquidityPool.asset()), _priceUpdateData);
-        require(price > 0, "TradePair::_getPrice: Failed to fetch the current price.");
-        return price;
+    /**
+     * @dev Returns price normalized to global decimals (10^30)
+     */
+    function _getPrice() internal view returns (int256) {
+        PythStructs.Price memory priceData = pyth.getPriceNoOlderThan(pythId, maxPriceAge);
+        require(priceData.price > 0, "TradePair::_getPrice: Failed to fetch the current priceData.");
+        if (priceData.expo > 0) {
+            return int256(priceData.price) * int256(10 ** uint256(uint32(priceData.expo))) * GLOBAL_MULTIPLIER;
+        } else {
+            return int256(priceData.price) * GLOBAL_MULTIPLIER / int256(10 ** uint256(uint32(-1 * priceData.expo)));
+        }
     }
 
     function totalOpenInterest() public view returns (int256) {

@@ -17,11 +17,12 @@ contract PositionPnLTest is Test, WithHelpers {
 
     function test_pnl_profit_long() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         _openPosition(BOB, 100 ether, LONG, _5X);
 
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), 200 ether, "should have made 100% profit");
@@ -30,11 +31,12 @@ contract PositionPnLTest is Test, WithHelpers {
 
     function test_pnl_profit_short() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         _openPosition(BOB, 100 ether, SHORT, _5X);
 
-        _setPrice(address(collateralToken), 800 ether);
+        vm.warp(2);
+        _setPrice(800 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), 200 ether, "should have made 100% profit");
@@ -43,11 +45,12 @@ contract PositionPnLTest is Test, WithHelpers {
 
     function test_pnl_loss_long() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         _openPosition(BOB, 100 ether, LONG, _5X);
 
-        _setPrice(address(collateralToken), 900 ether);
+        vm.warp(2);
+        _setPrice(900 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), 50 ether, "should have lost 50%");
@@ -56,11 +59,12 @@ contract PositionPnLTest is Test, WithHelpers {
 
     function test_pnl_loss_short() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         _openPosition(BOB, 100 ether, SHORT, _5X);
 
-        _setPrice(address(collateralToken), 1100 ether);
+        vm.warp(2);
+        _setPrice(1100 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), 50 ether, "should have lost 50%");
@@ -75,7 +79,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _tradePair_setMaxFundingRate(5 * BPS);
 
         _deposit(ALICE, 999.5 ether); // will receive 0.5 from open fee
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours);
 
@@ -91,7 +95,7 @@ contract PositionPnLTest is Test, WithHelpers {
         uint256 closeFee = value * 10 / 10_000;
         uint256 payOut = value - closeFee;
 
-        _setPrice(address(collateralToken), 1200 ether);
+        _setPrice(1200 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), payOut, "should be payout");
@@ -110,7 +114,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _tradePair_setMaxFundingRate(5 * BPS);
 
         _deposit(ALICE, 999.5 ether); // will receive 0.5 from open fee
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours);
 
@@ -126,7 +130,7 @@ contract PositionPnLTest is Test, WithHelpers {
         uint256 closeFee = value * 10 / 10_000;
         uint256 payOut = value - closeFee;
 
-        _setPrice(address(collateralToken), 800 ether);
+        _setPrice(800 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), payOut, "should be payout");
@@ -145,7 +149,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _tradePair_setMaxFundingRate(5 * BPS);
 
         _deposit(ALICE, 999.5 ether); // will receive 0.5 from open fee
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours);
 
@@ -161,7 +165,7 @@ contract PositionPnLTest is Test, WithHelpers {
         uint256 closeFee = value * 10 / 10_000;
         uint256 payOut = value - closeFee;
 
-        _setPrice(address(collateralToken), 900 ether);
+        _setPrice(900 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), payOut, "should be payout");
@@ -178,7 +182,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _tradePair_setMaxFundingRate(5 * BPS);
 
         _deposit(ALICE, 999.5 ether); // will receive 0.5 from open fee
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours);
 
@@ -194,7 +198,7 @@ contract PositionPnLTest is Test, WithHelpers {
         uint256 closeFee = value * 10 / 10_000;
         uint256 payOut = value - closeFee;
 
-        _setPrice(address(collateralToken), 1100 ether);
+        _setPrice(1100 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), payOut, "should be payout");
@@ -211,7 +215,7 @@ contract PositionPnLTest is Test, WithHelpers {
         _tradePair_setMaxFundingRate(5 * BPS);
 
         _deposit(ALICE, 998.5 ether); // will receive 1.5 from open fee
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
 
         vm.warp(1 hours);
 
@@ -230,7 +234,7 @@ contract PositionPnLTest is Test, WithHelpers {
         uint256 closeFee = value * 10 / 10_000;
         uint256 payOut = value - closeFee;
 
-        _setPrice(address(collateralToken), 1200 ether);
+        _setPrice(1200 * 1e8);
         _closePosition(BOB, 1);
 
         assertEq(collateralToken.balanceOf(BOB), payOut, "should be payout");

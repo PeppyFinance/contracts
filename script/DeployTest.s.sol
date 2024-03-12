@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.18;
 
-import "forge-std/Test.sol";
-import "script/WithDeploymentHelpers.s.sol";
 import "script/Deploy.s.sol";
-import "test/setup/constants.sol";
+import "forge-std/Script.sol";
+import "script/WithDeploymentHelpers.s.sol";
 import "src/auxiliary/FaucetToken.sol";
 import "pyth-sdk-solidity/MockPyth.sol";
 
-contract WithDeployment is WithDeploymentHelpers, Test {
-    function testMock() public virtual {}
+contract DeployTest is Script, WithDeploymentHelpers {
+    function testMock() public {}
 
-    function deploy() public {
+    function run() public {
+        string memory _network = "test";
+
         _simulateEcosystem();
 
         DeployPeppy deployScript = new DeployPeppy();
@@ -19,7 +20,6 @@ contract WithDeployment is WithDeploymentHelpers, Test {
         deployScript.run();
     }
 
-    /// @dev Etch contracts outside the protocol
     function _simulateEcosystem() private {
         // Deploy USDC (an ERC20 token) to the collateral address
         vm.etch(_getConstant("COLLATERAL"), address(new FaucetToken("Colletaral", "USDC")).code);

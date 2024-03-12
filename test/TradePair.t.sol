@@ -18,10 +18,11 @@ contract TradePairBasicTest is Test, WithHelpers {
     function test_totalOpenInterest() public {
         assertEq(tradePair.totalOpenInterest(), 0);
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
         assertEq(tradePair.totalOpenInterest(), 500 ether);
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
         assertEq(tradePair.totalOpenInterest(), 500 ether);
         _closePosition(BOB, 1);
         assertEq(tradePair.totalOpenInterest(), 0);
@@ -29,10 +30,11 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test_unrealizedPnL() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
         assertEq(_tradePair_unrealizedPnL(), 0);
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
         assertEq(_tradePair_unrealizedPnL(), 100 ether);
         _closePosition(BOB, 1);
         assertEq(_tradePair_unrealizedPnL(), 0);
@@ -40,9 +42,10 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test_syncUnrealizedPnL_basic() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
 
         assertEq(collateralToken.balanceOf(address(tradePair)), 100 ether, "tradePair balance before");
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool balance before");
@@ -57,10 +60,11 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test_totalCollateral() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
         assertEq(_tradePair_totalCollateral(), 100 ether);
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
         assertEq(_tradePair_totalCollateral(), 100 ether);
         _closePosition(BOB, 1);
         assertEq(_tradePair_totalCollateral(), 0);
@@ -68,12 +72,14 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test__syncUnrealizedPnL_complex() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
-        _setPrice(address(collateralToken), 1250 ether);
+        vm.warp(2);
+        _setPrice(1250 * 1e8);
 
         _openPosition(BOB, 100 ether, 1, 5_000_000);
-        _setPrice(address(collateralToken), 1500 ether);
+        vm.warp(3);
+        _setPrice(1500 * 1e8);
 
         // 100 * 250% + 100 * 100%
         assertEq(_tradePair_unrealizedPnL(), 350 ether, "unrealizedPnL before");
@@ -89,11 +95,12 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test_syncedUnrealizedPnL_aboveTotalCollateral() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
 
         // Positon is liquidatable
-        _setPrice(address(collateralToken), 800 ether);
+        vm.warp(2);
+        _setPrice(800 * 1e8);
         _tradePair_syncUnrealizedPnL();
         assertEq(collateralToken.balanceOf(address(tradePair)), 100 ether, "tradePair balance after");
         assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool balance after");
@@ -101,9 +108,10 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test__syncUnrealizedPnL_fluctuates() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, 1, 5_000_000);
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
         _tradePair_syncUnrealizedPnL();
 
         assertEq(collateralToken.balanceOf(address(tradePair)), 200 ether, "tradePair balance after price increase");
@@ -111,7 +119,8 @@ contract TradePairBasicTest is Test, WithHelpers {
             collateralToken.balanceOf(address(liquidityPool)), 900 ether, "liquidityPool balance after price increase"
         );
 
-        _setPrice(address(collateralToken), 800 ether);
+        vm.warp(3);
+        _setPrice(800 * 1e8);
 
         _tradePair_syncUnrealizedPnL();
         assertEq(collateralToken.balanceOf(address(tradePair)), 100 ether, "tradePair balance after price decrease");
@@ -122,11 +131,12 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test_syncUnrealizedPnL_afterLiquidation() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, LONG, _5X);
         _openPosition(BOB, 100 ether, SHORT, _5X);
 
-        _setPrice(address(collateralToken), 1500 ether);
+        vm.warp(2);
+        _setPrice(1500 * 1e8);
         // the short should have been liquidated at 1200
 
         _tradePair_syncUnrealizedPnL();
@@ -152,11 +162,12 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test_syncUnrealizedPnL_afterPositionActions() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, LONG, _5X);
         _openPosition(BOB, 100 ether, SHORT, _5X);
 
-        _setPrice(address(collateralToken), 1500 ether);
+        vm.warp(2);
+        _setPrice(1500 * 1e8);
 
         _liquidatePosition(2);
 
@@ -172,10 +183,11 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test_syncedUnrealizedPnL_afterPositionOpen() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, LONG, _5X);
 
-        _setPrice(address(collateralToken), 2000 ether);
+        vm.warp(2);
+        _setPrice(2000 * 1e8);
         assertEq(_tradePair_unrealizedPnL(), 500 ether, "unrealizedPnL before");
 
         _openPosition(BOB, 100 ether, LONG, _5X);
@@ -187,86 +199,110 @@ contract TradePairBasicTest is Test, WithHelpers {
 
     function test_openPosition_minLeverage() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         deal(address(collateralToken), BOB, 100 ether);
 
+        deal(BOB, 1);
         vm.startPrank(BOB);
         collateralToken.approve(address(tradePair), 100 ether);
+        bytes[] memory updateDataArray = _getPythUpdateArrayWithCurrentPrice();
         vm.expectRevert("TradePair::openPosition: Leverage too low");
-        tradePair.openPosition(100 ether, 999_999, LONG, new bytes[](0));
+        tradePair.openPosition{value: 1}(100 ether, 999_999, LONG, updateDataArray);
     }
 
     function test_openPosition_maxLeverage() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         deal(address(collateralToken), BOB, 100 ether);
 
+        deal(BOB, 1);
         vm.startPrank(BOB);
         collateralToken.approve(address(tradePair), 100 ether);
+        bytes[] memory updateDataArray = _getPythUpdateArrayWithCurrentPrice();
         vm.expectRevert("TradePair::openPosition: Leverage too high");
-        tradePair.openPosition(100 ether, 100_000_001, LONG, new bytes[](0));
+        tradePair.openPosition{value: 1}(100 ether, 100_000_001, LONG, updateDataArray);
     }
 
     function test_openPosition_invalidDirection() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         deal(address(collateralToken), BOB, 100 ether);
 
+        deal(BOB, 1);
         vm.startPrank(BOB);
         collateralToken.approve(address(tradePair), 100 ether);
+        bytes[] memory updateDataArray = _getPythUpdateArrayWithCurrentPrice();
         vm.expectRevert("TradePair::openPosition: Invalid direction");
-        tradePair.openPosition(100 ether, _5X, 0, new bytes[](0));
+        tradePair.openPosition{value: 1}(100 ether, _5X, 0, updateDataArray);
 
         vm.expectRevert("TradePair::openPosition: Invalid direction");
-        tradePair.openPosition(100 ether, _5X, 2, new bytes[](0));
+        tradePair.openPosition{value: 1}(100 ether, _5X, 2, updateDataArray);
 
         vm.expectRevert("TradePair::openPosition: Invalid direction");
-        tradePair.openPosition(100 ether, _5X, -2, new bytes[](0));
+        tradePair.openPosition{value: 1}(100 ether, _5X, -2, updateDataArray);
     }
 
     function test_closePosition_notOwner() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, LONG, _5X);
 
+        deal(ALICE, 1 ether);
         vm.startPrank(ALICE);
+        bytes[] memory updateDataArray = _getPythUpdateArrayWithCurrentPrice();
         vm.expectRevert("TradePair::closePosition: Only the owner can close the position");
-        tradePair.closePosition(1, new bytes[](0));
+        tradePair.closePosition{value: 1}(1, updateDataArray);
     }
 
     function test_closePosition_liquidatable() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, LONG, _5X);
 
-        _setPrice(address(collateralToken), 800 ether);
+        vm.warp(2);
+        _setPrice(800 * 1e8);
 
+        deal(BOB, 1 ether);
         vm.startPrank(BOB);
+        bytes[] memory updateDataArray = _getPythUpdateArrayWithCurrentPrice();
         vm.expectRevert("TradePair::closePosition: Position is liquidatable and can not be closed");
-        tradePair.closePosition(1, new bytes[](0));
+        tradePair.closePosition{value: 1}(1, updateDataArray);
     }
 
     function test_liquidatePosition_doesNotExist() public {
+        _setPrice(1000 * 1e8);
+        deal(BOB, 1);
         vm.startPrank(BOB);
+        bytes[] memory updateDataArray = _getPythUpdateArrayWithCurrentPrice();
         vm.expectRevert("TradePair::liquidatePosition: Position does not exist");
-        tradePair.liquidatePosition(1, new bytes[](0));
+        tradePair.liquidatePosition{value: 1}(1, updateDataArray);
     }
 
     function test_liquidatePosition_notLiquidatable() public {
         _deposit(ALICE, 1000 ether);
-        _setPrice(address(collateralToken), 1000 ether);
+        _setPrice(1000 * 1e8);
         _openPosition(BOB, 100 ether, LONG, _5X);
 
-        _setPrice(address(collateralToken), 1200 ether);
+        vm.warp(2);
+        _setPrice(1200 * 1e8);
 
+        deal(BOB, 1);
         vm.startPrank(BOB);
+        bytes[] memory updateDataArray = _getPythUpdateArrayWithCurrentPrice();
         vm.expectRevert("TradePair::liquidatePosition: Position is not liquidatable");
-        tradePair.liquidatePosition(1, new bytes[](0));
+        tradePair.liquidatePosition{value: 1}(1, updateDataArray);
     }
 
     function test_getPositionDetails_doesNotExit() public {
+        _setPrice(1000 * 1e8);
+        deal(BOB, 1);
         vm.startPrank(BOB);
         vm.expectRevert("TradePair::getPositionDetails: Position does not exist");
         tradePair.getPositionDetails(1, 1000 ether);
+    }
+
+    function test_setting_setMaxPriceAge() public {
+        _tradePair_setMaxPriceAge(10);
+        assertEq(tradePair.maxPriceAge(), 10, "max price age");
     }
 }
