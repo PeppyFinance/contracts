@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "forge-std/Script.sol";
-import "script/WithDeploymentHelpers.s.sol";
+import "script/helpers/WithDeploymentHelpers.s.sol";
 
 import "src/TradePair.sol";
 import "src/LiquidityPool.sol";

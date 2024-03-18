@@ -3,7 +3,7 @@ pragma solidity ^0.8.18;
 
 import "script/Deploy.s.sol";
 import "forge-std/Script.sol";
-import "script/WithDeploymentHelpers.s.sol";
+import "script/helpers/WithDeploymentHelpers.s.sol";
 import "src/auxiliary/FaucetToken.sol";
 import "pyth-sdk-solidity/MockPyth.sol";
 

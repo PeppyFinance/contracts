@@ -9,7 +9,7 @@ import "src/Controller.sol";
 import "test/setup/MockPriceFeed.sol";
 import "test/setup/constants.sol";
 import "src/auxiliary/FaucetToken.sol";
-import "script/WithDeploymentHelpers.s.sol";
+import "script/helpers/WithDeploymentHelpers.s.sol";
 import "forge-std/Vm.sol";
 
 /**
