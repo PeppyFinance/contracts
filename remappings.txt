@@ -4,3 +4,6 @@ forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
 openzeppelin/=lib/openzeppelin-contracts/contracts/
 pyth-sdk-solidity/=lib/pyth-sdk-solidity/
+src/=src/
+test/=test/
+script/=script/
