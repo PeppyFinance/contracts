@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "forge-std/Script.sol";
-import "script/helpers/WithDeploymentHelpers.s.sol";
+import "script/helpers/WithFileHelpers.s.sol";
 
 import "src/TradePair.sol";
 import "src/LiquidityPool.sol";
@@ -15,7 +15,7 @@ import "forge-std/Vm.sol";
 /**
  * @dev Distributes tokens and sets up positions
  */
-contract SetupLocal is Script, WithDeploymentHelpers {
+contract SetupLocal is Script, WithFileHelpers {
     MockPyth mockPyth;
 
     function testSetupLocal() public {}

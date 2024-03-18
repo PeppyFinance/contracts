@@ -9,13 +9,13 @@ import "src/Controller.sol";
 import "test/setup/MockPriceFeed.sol";
 import "test/setup/constants.sol";
 import "src/auxiliary/FaucetToken.sol";
-import "script/helpers/WithDeploymentHelpers.s.sol";
+import "script/helpers/WithFileHelpers.s.sol";
 import "forge-std/Vm.sol";
 
 /**
  * @dev Distributes tokens and sets up positions
  */
-contract OpenPositionLocalScript is Script, WithDeploymentHelpers {
+contract OpenPositionLocalScript is Script, WithFileHelpers {
     function run() external {
         setNetwork("local");
 

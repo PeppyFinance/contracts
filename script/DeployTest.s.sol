@@ -3,11 +3,11 @@ pragma solidity ^0.8.18;
 
 import "script/Deploy.s.sol";
 import "forge-std/Script.sol";
-import "script/helpers/WithDeploymentHelpers.s.sol";
+import "script/helpers/WithFileHelpers.s.sol";
 import "src/auxiliary/FaucetToken.sol";
 import "pyth-sdk-solidity/MockPyth.sol";
 
-contract DeployTest is Script, WithDeploymentHelpers {
+contract DeployTest is Script, WithFileHelpers {
     function testMock() public {}
 
     function run() public {

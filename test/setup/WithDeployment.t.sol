@@ -2,13 +2,13 @@
 pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
-import "script/helpers/WithDeploymentHelpers.s.sol";
+import "script/helpers/WithFileHelpers.s.sol";
 import "script/Deploy.s.sol";
 import "test/setup/constants.sol";
 import "src/auxiliary/FaucetToken.sol";
 import "pyth-sdk-solidity/MockPyth.sol";
 
-contract WithDeployment is WithDeploymentHelpers, Test {
+contract WithDeployment is WithFileHelpers, Test {
     function testMock() public virtual {}
 
     function deploy() public {

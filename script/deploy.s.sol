@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "forge-std/Script.sol";
-import "script/helpers/WithDeploymentHelpers.s.sol";
+import "script/helpers/WithFileHelpers.s.sol";
 
 import "src/TradePair.sol";
 import "src/LiquidityPool.sol";
@@ -13,7 +13,7 @@ import "openzeppelin/token/ERC20/ERC20.sol";
 import "forge-std/Vm.sol";
 import "src/auxiliary/FaucetToken.sol";
 
-contract DeployPeppy is Script, WithDeploymentHelpers {
+contract DeployPeppy is Script, WithFileHelpers {
     Controller controller;
     TradePair tradePair;
     IPyth pyth;

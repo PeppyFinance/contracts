@@ -9,7 +9,7 @@ import "openzeppelin/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "openzeppelin/proxy/transparent/ProxyAdmin.sol";
 import "openzeppelin/utils/Strings.sol";
 
-contract WithDeploymentHelpers is Script {
+contract WithFileHelpers is Script {
     using stdJson for string;
     using Strings for *;
 
@@ -20,7 +20,7 @@ contract WithDeploymentHelpers is Script {
     string _contractsPath;
     string _constantsPath;
 
-    function testMock_WithDeploymentHelpers() public {}
+    function testMock_WithFileHelpers() public {}
 
     struct ProxyGroup {
         address delegator;
