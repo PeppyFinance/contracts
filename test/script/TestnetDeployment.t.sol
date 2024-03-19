@@ -6,6 +6,7 @@ import "script/testnet/Deploy.s.sol";
 import "script/helpers/WithFileHelpers.s.sol";
 import "pyth-sdk-solidity/IPyth.sol";
 import "pyth-sdk-solidity/PythErrors.sol";
+import "test/setup/constants.sol";
 
 contract DeploymentTest is Test, WithFileHelpers {
     function setUp() public {
@@ -59,5 +60,15 @@ contract DeploymentTest is Test, WithFileHelpers {
         pyth.updatePriceFeeds{value: 1}(updateDataArray);
         vm.expectRevert(abi.encodeWithSelector(PythErrors.StalePrice.selector));
         pyth.getPriceNoOlderThan(id, 0);
+    }
+
+    function test_peppyUsdc_maxMintable() public {
+        PeppyUsdc peppyUsdc = PeppyUsdc(_getAddress("collateralToken"));
+
+        vm.startPrank(BOB);
+        peppyUsdc.mint(MAX_MINTABLE);
+
+        vm.expectRevert("PeppyUsdc::mint: max mintable exceeded");
+        peppyUsdc.mint(MAX_MINTABLE);
     }
 }
