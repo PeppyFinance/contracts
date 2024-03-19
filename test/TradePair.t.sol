@@ -58,6 +58,39 @@ contract TradePairBasicTest is Test, WithHelpers {
         assertEq(_tradePair_unrealizedPnL(), 100 ether);
     }
 
+    function test_syncUnrealizedPnL_positiveExpo() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(PYTH_IOTA_USD, 1000 * 1e8, 8);
+        _openPosition(BOB, 100 ether, 1, 5_000_000);
+        vm.warp(2);
+        _setPrice(PYTH_IOTA_USD, 1200 * 1e8, 8);
+
+        assertEq(collateralToken.balanceOf(address(tradePair)), 100 ether, "tradePair balance before");
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 1000 ether, "liquidityPool balance before");
+        assertEq(_tradePair_unrealizedPnL(), 100 ether);
+
+        _tradePair_syncUnrealizedPnL();
+
+        assertEq(collateralToken.balanceOf(address(tradePair)), 200 ether, "tradePair balance after");
+        assertEq(collateralToken.balanceOf(address(liquidityPool)), 900 ether, "liquidityPool balance after");
+        assertEq(_tradePair_unrealizedPnL(), 100 ether);
+    }
+
+    function test_fail_nullPrice() public {
+        _deposit(ALICE, 1000 ether);
+        _setPrice(PYTH_IOTA_USD, 0, 8);
+
+        deal(address(collateralToken), BOB, 100 ether);
+
+        deal(BOB, 1);
+        vm.startPrank(BOB);
+        collateralToken.approve(address(tradePair), 100 ether);
+        bytes[] memory updateDataArray = _getPythUpdateArrayWithCurrentPrice();
+
+        vm.expectRevert("TradePair::_getPrice: Failed to fetch the current priceData.");
+        tradePair.openPosition{value: 1}(100 ether, _5X, LONG, updateDataArray);
+    }
+
     function test_totalCollateral() public {
         _deposit(ALICE, 1000 ether);
         _setPrice(1000 * 1e8);

@@ -15,6 +15,3 @@ docs/
 
 # Testrun files
 deployments/testrun_*
-
-# Coverage Report
-lcov.info
