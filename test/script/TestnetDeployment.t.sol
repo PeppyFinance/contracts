@@ -15,11 +15,21 @@ contract DeploymentTest is Test, WithFileHelpers {
         testnetDeployment.run();
     }
 
-    function test_tradePair_deployed() public {
+    function test_tradePairs_deployed() public {
         assertEq(
-            address(ITradePair(_getAddress("tradePair")).collateralToken()),
+            address(ITradePair(_getAddress("tradePairIotaUsd")).collateralToken()),
             _getAddress("collateralToken"),
-            "tradePair.collateralToken should be COLLATERAL"
+            "tradePairIotaUsd.collateralToken should be COLLATERAL"
+        );
+        assertEq(
+            address(ITradePair(_getAddress("tradePairEthUsd")).collateralToken()),
+            _getAddress("collateralToken"),
+            "tradePairEthUsd.collateralToken should be COLLATERAL"
+        );
+        assertEq(
+            address(ITradePair(_getAddress("tradePairBtcUsd")).collateralToken()),
+            _getAddress("collateralToken"),
+            "tradePairBtcUsd.collateralToken should be COLLATERAL"
         );
     }
 
@@ -31,9 +41,36 @@ contract DeploymentTest is Test, WithFileHelpers {
         );
     }
 
-    function test_tradePair_pricefeed() public {
+    function test_controller_tradePairs() public {
+        assertTrue(
+            IController(_getAddress("controller")).isTradePair(_getAddress("tradePairIotaUsd")),
+            "tradePairIotaUsd should be in controller"
+        );
+        assertTrue(
+            IController(_getAddress("controller")).isTradePair(_getAddress("tradePairEthUsd")),
+            "tradePairEthUsd should be in controller"
+        );
+        assertTrue(
+            IController(_getAddress("controller")).isTradePair(_getAddress("tradePairBtcUsd")),
+            "tradePairBtcUsd should be in controller"
+        );
+    }
+
+    function test_tradePairs_pricefeed() public {
         assertEq(
-            address(ITradePair(_getAddress("tradePair")).pyth()), _getAddress("pyth"), "tradePair.pyth should be pyth"
+            address(ITradePair(_getAddress("tradePairIotaUsd")).pyth()),
+            _getAddress("pyth"),
+            "tradePairIotaUsd.pyth should be pyth"
+        );
+        assertEq(
+            address(ITradePair(_getAddress("tradePairEthUsd")).pyth()),
+            _getAddress("pyth"),
+            "tradePairEthUsd.pyth should be pyth"
+        );
+        assertEq(
+            address(ITradePair(_getAddress("tradePairBtcUsd")).pyth()),
+            _getAddress("pyth"),
+            "tradePairBtcUsd.pyth should be pyth"
         );
     }
 
@@ -83,8 +120,14 @@ contract DeploymentTest is Test, WithFileHelpers {
         assertEq(liquidityPool.maxBorrowRate(), MAX_BORROW_RATE, "maxBorrowRate should be 0.05");
     }
 
-    function test_tradePair_fundingRate() public {
-        ITradePair tradePair = ITradePair(_getAddress("tradePair"));
-        assertEq(tradePair.maxFundingRate(), MAX_FUNDING_RATE, "maxFundingRate should be 0.05");
+    function test_tradePairs_fundingRate() public {
+        ITradePair tradePairIotaUsd = ITradePair(_getAddress("tradePairIotaUsd"));
+        assertEq(tradePairIotaUsd.maxFundingRate(), MAX_FUNDING_RATE, "maxFundingRate should be 0.05");
+
+        ITradePair tradePairEthUsd = ITradePair(_getAddress("tradePairEthUsd"));
+        assertEq(tradePairEthUsd.maxFundingRate(), MAX_FUNDING_RATE, "maxFundingRate should be 0.05");
+
+        ITradePair tradePairBtcUsd = ITradePair(_getAddress("tradePairBtcUsd"));
+        assertEq(tradePairBtcUsd.maxFundingRate(), MAX_FUNDING_RATE, "maxFundingRate should be 0.05");
     }
 }

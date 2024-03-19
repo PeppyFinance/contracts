@@ -13,7 +13,9 @@ import "src/ProductionConstants.sol";
 
 contract WithActionHelpers is Script, WithFileHelpers {
     Controller controller;
-    TradePair tradePair;
+    TradePair tradePairIotaUsd;
+    TradePair tradePairEthUsd;
+    TradePair tradePairBtcUsd;
     MockPyth mockPyth;
     IERC20Metadata collateralToken;
     LiquidityPool liquidityPool;
@@ -32,44 +34,73 @@ contract WithActionHelpers is Script, WithFileHelpers {
         collateralToken.approve(address(liquidityPool), INITIAL_MINT);
         liquidityPool.deposit(INITIAL_MINT);
 
-        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD, "IOTAUSD");
+        tradePairIotaUsd =
+            new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD, "IOTA/USD");
+        tradePairEthUsd = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_ETH_USD, "ETH/USD");
+        tradePairBtcUsd = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_BTC_USD, "BTC/USD");
 
-        controller.addTradePair(address(tradePair));
+        controller.addTradePair(address(tradePairIotaUsd));
+        controller.addTradePair(address(tradePairEthUsd));
+        controller.addTradePair(address(tradePairBtcUsd));
 
         liquidityPool.setMinBorrowRate(MIN_BORROW_RATE);
         liquidityPool.setMaxBorrowRate(MAX_BORROW_RATE);
-        tradePair.setMaxFundingRate(MAX_FUNDING_RATE);
+        tradePairIotaUsd.setMaxFundingRate(MAX_FUNDING_RATE);
+        tradePairEthUsd.setMaxFundingRate(MAX_FUNDING_RATE);
+        tradePairBtcUsd.setMaxFundingRate(MAX_FUNDING_RATE);
 
         vm.stopBroadcast();
 
         _startJson();
         _writeJson("liquidityPool", address(liquidityPool));
-        _writeJson("tradePair", address(tradePair));
+        _writeJson("tradePairIotaUsd", address(tradePairIotaUsd));
+        _writeJson("tradePairEthUsd", address(tradePairEthUsd));
+        _writeJson("tradePairBtcUsd", address(tradePairBtcUsd));
         _writeJson("collateralToken", address(collateralToken));
         _writeJson("pyth", address(mockPyth));
         _writeJson("controller", address(controller));
 
         string memory addressFile = string.concat("deployments/", _network, "_addresses.ts");
 
-        string memory addresses = string(
+        // multiple parts of string cocatenation to avoid stack too deep error:
+
+        string memory part1 = string(
             abi.encodePacked(
                 "export const controllerAddress = \"",
                 vm.toString(address(controller)),
                 "\";\n",
-                "export const tradePairAddress = \"",
-                vm.toString(address(tradePair)),
+                "export const tradePairIotaUsdAddress = \"",
+                vm.toString(address(tradePairIotaUsd)),
+                "\";\n"
+            )
+        );
+
+        string memory part2 = string(
+            abi.encodePacked(
+                "export const tradePairEthUsdAddress = \"",
+                vm.toString(address(tradePairEthUsd)),
                 "\";\n",
+                "export const tradePairBtcUsdAddress = \"",
+                vm.toString(address(tradePairBtcUsd)),
+                "\";\n"
+            )
+        );
+
+        string memory part3 = string(
+            abi.encodePacked(
                 "export const liquidityPoolAddress = \"",
                 vm.toString(address(liquidityPool)),
                 "\";\n",
                 "export const collateralTokenAddress = \"",
                 vm.toString(address(collateralToken)),
-                "\";\n",
-                "export const pythAddress = \"",
-                vm.toString(address(mockPyth)),
                 "\";\n"
             )
         );
+
+        string memory part4 =
+            string(abi.encodePacked("export const pythAddress = \"", vm.toString(address(mockPyth)), "\";\n"));
+
+        string memory addresses = string(abi.encodePacked(part1, part2, part3, part4));
         vm.writeFile(addressFile, addresses);
     }
 
