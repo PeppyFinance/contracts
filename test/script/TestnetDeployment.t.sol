@@ -72,8 +72,8 @@ contract DeploymentTest is Test, WithFileHelpers {
         peppyUsdc.mint(MAX_MINTABLE);
     }
 
-    function test_peppyUsdc_initialMint() public {
-        PeppyUsdc peppyUsdc = PeppyUsdc(_getAddress("collateralToken"));
-        assertEq(peppyUsdc.balanceOf(address(vm.envAddress("DEPLOYER"))), INITIAL_MINT, "Initial mint should be 1000");
+    function test_liquidityPool_initialDeposit() public {
+        ILiquidityPool liquidityPool = ILiquidityPool(_getAddress("liquidityPool"));
+        assertEq(liquidityPool.balanceOf(address(vm.envAddress("DEPLOYER"))), INITIAL_MINT, "Initial deposit");
     }
 }
