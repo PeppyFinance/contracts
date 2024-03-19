@@ -36,6 +36,10 @@ contract WithActionHelpers is Script, WithFileHelpers {
 
         controller.addTradePair(address(tradePair));
 
+        liquidityPool.setMinBorrowRate(MIN_BORROW_RATE);
+        liquidityPool.setMaxBorrowRate(MAX_BORROW_RATE);
+        tradePair.setMaxFundingRate(MAX_FUNDING_RATE);
+
         vm.stopBroadcast();
 
         _startJson();

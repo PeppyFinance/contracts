@@ -76,4 +76,12 @@ contract DeploymentTest is Test, WithFileHelpers {
         ILiquidityPool liquidityPool = ILiquidityPool(_getAddress("liquidityPool"));
         assertEq(liquidityPool.balanceOf(address(vm.envAddress("DEPLOYER"))), INITIAL_MINT, "Initial deposit");
     }
+
+    function test_liquidityPool_borrowRates() public {
+        ILiquidityPool liquidityPool = ILiquidityPool(_getAddress("liquidityPool"));
+        assertEq(liquidityPool.minBorrowRate(), MIN_BORROW_RATE, "minBorrowRate should be 0.005");
+        assertEq(liquidityPool.maxBorrowRate(), MAX_BORROW_RATE, "maxBorrowRate should be 0.05");
+    }
+
+    function test_trade
 }

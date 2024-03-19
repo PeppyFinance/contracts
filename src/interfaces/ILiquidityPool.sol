@@ -15,6 +15,7 @@ interface ILiquidityPool is IERC20 {
     function setMinBorrowRate(int256 rate) external;
     function setMaxBorrowRate(int256 rate) external;
     function asset() external view returns (IERC20Metadata);
+    function minBorrowRate() external view returns (int256);
     function maxBorrowRate() external view returns (int256);
     function ratio() external view returns (uint256);
     function requestPayout(uint256) external;
