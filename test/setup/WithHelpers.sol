@@ -16,6 +16,15 @@ contract WithHelpers is Test {
     ERC20 collateralToken;
     LiquidityPool liquidityPool;
 
+    event TradePairConstructed(
+        address collateralToken,
+        address pyth,
+        uint8 assetDecimals,
+        uint8 collateralDecimals,
+        bytes32 pythId,
+        string name
+    );
+
     function test_WithHelpers() public {}
 
     function _deployTestSetup() public {
@@ -23,7 +32,7 @@ contract WithHelpers is Test {
         collateralToken = new ERC20("Collateral", "COLL");
         mockPyth = new MockPyth(10, 1);
         liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD);
+        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD, "IOTAUSD");
         controller.addTradePair(address(tradePair));
         deal(address(this), 1 ether);
     }

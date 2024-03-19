@@ -9,7 +9,7 @@ import "openzeppelin/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "openzeppelin/proxy/transparent/ProxyAdmin.sol";
 import "openzeppelin/utils/Strings.sol";
 
-contract WithDeploymentHelpers is Script {
+contract WithFileHelpers is Script {
     using stdJson for string;
     using Strings for *;
 
@@ -20,7 +20,7 @@ contract WithDeploymentHelpers is Script {
     string _contractsPath;
     string _constantsPath;
 
-    function testMock_WithDeploymentHelpers() public {}
+    function testMock_WithFileHelpers() public {}
 
     struct ProxyGroup {
         address delegator;
@@ -30,8 +30,8 @@ contract WithDeploymentHelpers is Script {
     /// @dev network has to be set as the path for contracts and constants depends on it
     function setNetwork(string memory network_) public {
         _network = network_;
-        _contractsPath = string.concat(vm.projectRoot(), "/deploy/contracts.", _network, ".json");
-        _constantsPath = string.concat(vm.projectRoot(), "/deploy/constants.", _network, ".json");
+        _contractsPath = string.concat(vm.projectRoot(), "/deployments/", _network, "_contracts.json");
+        _constantsPath = string.concat(vm.projectRoot(), "/deployments/", _network, "_constants.json");
     }
 
     function _getAddress(string memory name) internal view returns (address _address) {

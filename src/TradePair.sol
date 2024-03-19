@@ -19,6 +19,8 @@ contract TradePair is ITradePair {
 
     uint256 public liquidatorReward = 1 * 1e18; // Same decimals as collateral
 
+    string name;
+
     IController public controller;
     ILiquidityPool public liquidityPool;
     IERC20 public collateralToken;
@@ -61,7 +63,8 @@ contract TradePair is ITradePair {
         uint8 assetDecimals_,
         uint8 collateralDecimals_,
         address pyth_,
-        bytes32 pythId_
+        bytes32 pythId_,
+        string memory name_
     ) {
         controller = controller_;
         pyth = IPyth(pyth_);
@@ -72,6 +75,11 @@ contract TradePair is ITradePair {
         COLLATERAL_MULTIPLIER = int256(10 ** collateralDecimals_);
         lastUpdateTimestamp = block.timestamp;
         maxSkew = 5 * BPS;
+        name = name_;
+
+        emit TradePairConstructed(
+            address(collateralToken), address(pyth), assetDecimals_, collateralDecimals_, pythId, name_
+        );
     }
 
     modifier updatePriceFeeds(bytes[] memory priceUpdateData_) {

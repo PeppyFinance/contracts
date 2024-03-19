@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "openzeppelin/token/ERC20/IERC20.sol";
+import "pyth-sdk-solidity/IPyth.sol";
 
 struct Position {
     uint256 collateral;
@@ -54,6 +55,14 @@ interface ITradePair {
     event CloseFeeSet(int256 closeFee);
     event MaxPriceAgeSet(uint256 maxPriceAge);
     event CloseFeePaid(uint256 amount);
+    event TradePairConstructed(
+        address collateralToken,
+        address pyth,
+        uint8 assetDecimals,
+        uint8 collateralDecimals,
+        bytes32 pythId,
+        string name
+    );
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
         external
@@ -78,4 +87,5 @@ interface ITradePair {
     function totalFundingFeeIntegral() external view returns (int256);
     function collateralToken() external view returns (IERC20);
     function getUnrealizedPnL(bytes[] memory priceUpdateData_) external payable returns (int256);
+    function pyth() external view returns (IPyth);
 }
