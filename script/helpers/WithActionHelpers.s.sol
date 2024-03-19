@@ -22,7 +22,7 @@ contract WithActionHelpers is Script, WithFileHelpers {
 
     /// @dev deploys contracts to the testnet and deploys mock price feed and tokens
     function deployTestnet() public {
-        uint256 deployerPrivateKey = vm.envUint("PEPPY_DEPLOYER_PK");
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -106,7 +106,7 @@ contract WithActionHelpers is Script, WithFileHelpers {
 
     /// @dev deploys contracts to the testnet and
     function deployTestnetRealPyth() public {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
+        uint256 deployerPrivateKey = vm.envUint("PEPPY_DEPLOYER_PK");
 
         vm.startBroadcast(deployerPrivateKey);
 

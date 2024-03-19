@@ -7,7 +7,7 @@ import "script/helpers/WithActionHelpers.s.sol";
 
 contract TestnetDeployRealPyth is Script, WithActionHelpers {
     function run() public {
-        setNetwork(vm.envOr("NETWORK", string("testrun")));
+        setNetwork(vm.envOr("NETWORK", string("testnet")));
 
         deployTestnetRealPyth();
     }
