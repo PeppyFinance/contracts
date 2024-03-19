@@ -83,5 +83,8 @@ contract DeploymentTest is Test, WithFileHelpers {
         assertEq(liquidityPool.maxBorrowRate(), MAX_BORROW_RATE, "maxBorrowRate should be 0.05");
     }
 
-    function test_trade
+    function test_tradePair_fundingRate() public {
+        ITradePair tradePair = ITradePair(_getAddress("tradePair"));
+        assertEq(tradePair.maxFundingRate(), MAX_FUNDING_RATE, "maxFundingRate should be 0.05");
+    }
 }
