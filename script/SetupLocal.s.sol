@@ -9,7 +9,7 @@ import "src/LiquidityPool.sol";
 import "src/Controller.sol";
 import "pyth-sdk-solidity/MockPyth.sol";
 import "test/setup/constants.sol";
-import "src/auxiliary/FaucetToken.sol";
+import "src/auxiliary/PeppyUsdc.sol";
 import "forge-std/Vm.sol";
 
 /**
@@ -23,7 +23,7 @@ contract SetupLocal is Script, WithFileHelpers {
     function run() external {
         setNetwork("local");
 
-        FaucetToken collateralToken = FaucetToken(_getAddress("collateralToken"));
+        PeppyUsdc collateralToken = PeppyUsdc(_getAddress("collateralToken"));
         TradePair tradePair = TradePair(_getAddress("tradePair"));
         mockPyth = MockPyth(_getAddress("pyth"));
 

@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 
 import "forge-std/Script.sol";
 import "script/helpers/WithFileHelpers.s.sol";
-import "src/auxiliary/FaucetToken.sol";
+import "src/auxiliary/PeppyUsdc.sol";
 import "pyth-sdk-solidity/MockPyth.sol";
 import "src/TradePair.sol";
 import "src/LiquidityPool.sol";
@@ -25,7 +25,7 @@ contract WithActionHelpers is Script, WithFileHelpers {
         vm.startBroadcast(deployerPrivateKey);
 
         controller = new Controller();
-        collateralToken = new FaucetToken("Collateral", "COLL");
+        collateralToken = new PeppyUsdc("Collateral", "COLL");
         mockPyth = new MockPyth(10, 1);
         liquidityPool = new LiquidityPool(controller, collateralToken);
         tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD, "IOTAUSD");

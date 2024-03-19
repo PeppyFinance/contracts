@@ -8,7 +8,7 @@ import "src/LiquidityPool.sol";
 import "src/Controller.sol";
 import "test/setup/MockPriceFeed.sol";
 import "test/setup/constants.sol";
-import "src/auxiliary/FaucetToken.sol";
+import "src/auxiliary/PeppyUsdc.sol";
 import "script/helpers/WithFileHelpers.s.sol";
 import "forge-std/Vm.sol";
 
@@ -19,7 +19,7 @@ contract OpenPositionLocalScript is Script, WithFileHelpers {
     function run() external {
         setNetwork("local");
 
-        FaucetToken collateralToken = FaucetToken(_getAddress("collateralToken"));
+        PeppyUsdc collateralToken = PeppyUsdc(_getAddress("collateralToken"));
         TradePair tradePair = TradePair(_getAddress("tradePair"));
 
         vm.startBroadcast(vm.envUint("ALICE_PK"));

@@ -4,8 +4,6 @@ pragma solidity ^0.8.18;
 import "script/testnet/Deploy.s.sol";
 import "forge-std/Script.sol";
 import "script/helpers/WithFileHelpers.s.sol";
-import "src/auxiliary/FaucetToken.sol";
-import "pyth-sdk-solidity/MockPyth.sol";
 
 contract DeployLocal is Script, WithFileHelpers {
     IPyth pyth;
