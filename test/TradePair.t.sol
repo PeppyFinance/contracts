@@ -305,4 +305,10 @@ contract TradePairBasicTest is Test, WithHelpers {
         _tradePair_setMaxPriceAge(10);
         assertEq(tradePair.maxPriceAge(), 10, "max price age");
     }
+
+    function test_emitsContstructed() public {
+        vm.expectEmit();
+        emit TradePairConstructed(address(collateralToken), address(mockPyth), 18, 6, PYTH_IOTA_USD, "IOTAUSD");
+        tradePair = new TradePair(controller, liquidityPool, 18, 6, address(mockPyth), PYTH_IOTA_USD, "IOTAUSD");
+    }
 }

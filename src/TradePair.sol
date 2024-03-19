@@ -76,6 +76,10 @@ contract TradePair is ITradePair {
         lastUpdateTimestamp = block.timestamp;
         maxSkew = 5 * BPS;
         name = name_;
+
+        emit TradePairConstructed(
+            address(collateralToken), address(pyth), assetDecimals_, collateralDecimals_, pythId, name_
+        );
     }
 
     modifier updatePriceFeeds(bytes[] memory priceUpdateData_) {

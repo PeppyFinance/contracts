@@ -16,6 +16,15 @@ contract WithHelpers is Test {
     ERC20 collateralToken;
     LiquidityPool liquidityPool;
 
+    event TradePairConstructed(
+        address collateralToken,
+        address pyth,
+        uint8 assetDecimals,
+        uint8 collateralDecimals,
+        bytes32 pythId,
+        string name
+    );
+
     function test_WithHelpers() public {}
 
     function _deployTestSetup() public {

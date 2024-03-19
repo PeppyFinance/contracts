@@ -55,6 +55,14 @@ interface ITradePair {
     event CloseFeeSet(int256 closeFee);
     event MaxPriceAgeSet(uint256 maxPriceAge);
     event CloseFeePaid(uint256 amount);
+    event TradePairConstructed(
+        address collateralToken,
+        address pyth,
+        uint8 assetDecimals,
+        uint8 collateralDecimals,
+        bytes32 pythId,
+        string name
+    );
 
     function openPosition(uint256 collateral, uint256 leverage, int8 direction, bytes[] memory _priceUpdateData)
         external
