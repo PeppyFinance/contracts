@@ -28,7 +28,7 @@ contract WithActionHelpers is Script, WithFileHelpers {
         collateralToken = new FaucetToken("Collateral", "COLL");
         mockPyth = new MockPyth(10, 1);
         liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD);
+        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD, "IOTAUSD");
         controller.addTradePair(address(tradePair));
 
         vm.stopBroadcast();
@@ -40,7 +40,7 @@ contract WithActionHelpers is Script, WithFileHelpers {
         _writeJson("pyth", address(mockPyth));
         _writeJson("controller", address(controller));
 
-        string memory addressFile = string.concat("deploy/addresses_", _network, ".ts");
+        string memory addressFile = string.concat("deployments/", _network, "_addresses.ts");
 
         string memory addresses = string(
             abi.encodePacked(

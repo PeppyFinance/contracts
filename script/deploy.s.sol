@@ -32,7 +32,7 @@ contract DeployPeppy is Script, WithFileHelpers {
         collateralToken = IERC20Metadata(_getConstant("COLLATERAL"));
         pyth = IPyth(_getConstant("PYTH"));
         liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(pyth), PYTH_IOTA_USD);
+        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(pyth), PYTH_IOTA_USD, "IOTAUSD");
         controller.addTradePair(address(tradePair));
 
         vm.stopBroadcast();

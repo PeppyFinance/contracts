@@ -23,7 +23,7 @@ contract WithHelpers is Test {
         collateralToken = new ERC20("Collateral", "COLL");
         mockPyth = new MockPyth(10, 1);
         liquidityPool = new LiquidityPool(controller, collateralToken);
-        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD);
+        tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD, "IOTAUSD");
         controller.addTradePair(address(tradePair));
         deal(address(this), 1 ether);
     }
