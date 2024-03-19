@@ -4,4 +4,4 @@
 source .env
 
 # Open position
-forge script script/SetupLocal.s.sol --fork-url http://localhost:8545 --broadcast --verify -vvvv --legacy
+NETWORK=local forge script script/SetupLocal.s.sol --fork-url http://localhost:8545 --broadcast -vvvv --legacy
