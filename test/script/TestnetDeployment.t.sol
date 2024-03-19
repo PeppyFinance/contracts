@@ -71,4 +71,9 @@ contract DeploymentTest is Test, WithFileHelpers {
         vm.expectRevert("PeppyUsdc::mint: max mintable exceeded");
         peppyUsdc.mint(MAX_MINTABLE);
     }
+
+    function test_peppyUsdc_initialMint() public {
+        PeppyUsdc peppyUsdc = PeppyUsdc(_getAddress("collateralToken"));
+        assertEq(peppyUsdc.balanceOf(address(vm.envAddress("DEPLOYER"))), INITIAL_MINT, "Initial mint should be 1000");
+    }
 }

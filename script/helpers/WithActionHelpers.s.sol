@@ -25,7 +25,7 @@ contract WithActionHelpers is Script, WithFileHelpers {
         vm.startBroadcast(deployerPrivateKey);
 
         controller = new Controller();
-        collateralToken = new PeppyUsdc("Collateral", "COLL", MAX_MINTABLE);
+        collateralToken = new PeppyUsdc("Collateral", "COLL", MAX_MINTABLE, INITIAL_MINT);
         mockPyth = new MockPyth(10, 1);
         liquidityPool = new LiquidityPool(controller, collateralToken);
         tradePair = new TradePair(controller, liquidityPool, 18, 18, address(mockPyth), PYTH_IOTA_USD, "IOTAUSD");

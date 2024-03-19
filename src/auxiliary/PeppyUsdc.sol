@@ -7,8 +7,11 @@ contract PeppyUsdc is ERC20 {
     uint256 maxMintable;
     mapping(address => uint256) public minted;
 
-    constructor(string memory name_, string memory symbol_, uint256 maxMintable_) ERC20(name_, symbol_) {
+    constructor(string memory name_, string memory symbol_, uint256 maxMintable_, uint256 initialMint_)
+        ERC20(name_, symbol_)
+    {
         maxMintable = maxMintable_;
+        _mint(msg.sender, initialMint_);
     }
 
     function mint(uint256 _amount) external {
