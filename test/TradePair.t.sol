@@ -339,6 +339,12 @@ contract TradePairBasicTest is Test, WithHelpers {
         assertEq(tradePair.maxPriceAge(), 10, "max price age");
     }
 
+    function test_setting_setMaxPriceAge_onlyOwner() public {
+        vm.prank(ALICE);
+        vm.expectRevert("Ownable: caller is not the owner");
+        _tradePair_setMaxPriceAge(10);
+    }
+
     function test_emitsContstructed() public {
         vm.expectEmit();
         emit TradePairConstructed(address(collateralToken), address(mockPyth), 18, 6, PYTH_IOTA_USD, "IOTAUSD");

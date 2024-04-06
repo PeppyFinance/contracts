@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
+import "openzeppelin/access/Ownable2Step.sol";
 import "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "src/interfaces/IController.sol";
 import "src/interfaces/IPriceFeed.sol";
@@ -10,7 +11,7 @@ import "src/interfaces/ITradePair.sol";
 import "pyth-sdk-solidity/IPyth.sol";
 import "forge-std/console2.sol";
 
-contract TradePair is ITradePair {
+contract TradePair is ITradePair, Ownable2Step {
     using SafeERC20 for IERC20;
 
     uint256 private _nextId;
@@ -260,31 +261,31 @@ contract TradePair is ITradePair {
         return longTotalAssetsValue - longOpenInterest + shortOpenInterest - shortTotalAssetsValue;
     }
 
-    function setMaxFundingRate(int256 maxFundingRate_) external {
+    function setMaxFundingRate(int256 maxFundingRate_) external onlyOwner {
         maxFundingRate = maxFundingRate_;
 
         emit MaxFundingRateSet(maxFundingRate_);
     }
 
-    function setMaxSkew(int256 maxSkew_) external {
+    function setMaxSkew(int256 maxSkew_) external onlyOwner {
         maxSkew = maxSkew_;
 
         emit MaxSkewSet(maxSkew_);
     }
 
-    function setOpenFee(int256 openFee_) external {
+    function setOpenFee(int256 openFee_) external onlyOwner {
         openFee = openFee_;
 
         emit OpenFeeSet(openFee_);
     }
 
-    function setCloseFee(int256 closeFee_) external {
+    function setCloseFee(int256 closeFee_) external onlyOwner {
         closeFee = closeFee_;
 
         emit CloseFeeSet(closeFee_);
     }
 
-    function setMaxPriceAge(uint256 maxPriceAge_) external {
+    function setMaxPriceAge(uint256 maxPriceAge_) external onlyOwner {
         maxPriceAge = maxPriceAge_;
 
         emit MaxPriceAgeSet(maxPriceAge_);
