@@ -2,12 +2,13 @@
 pragma solidity ^0.8.18;
 
 import "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
+import "openzeppelin/access/Ownable2Step.sol";
 import "openzeppelin/token/ERC20/ERC20.sol";
 import "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "src/interfaces/ILiquidityPool.sol";
 import "src/interfaces/IController.sol";
 
-contract LiquidityPool is ERC20, ILiquidityPool {
+contract LiquidityPool is ERC20, ILiquidityPool, Ownable2Step {
     using SafeERC20 for IERC20Metadata;
 
     IERC20Metadata public asset;
@@ -74,13 +75,13 @@ contract LiquidityPool is ERC20, ILiquidityPool {
         emit Redeem(msg.sender, assets, shares);
     }
 
-    function setMaxBorrowRate(int256 rate) external {
+    function setMaxBorrowRate(int256 rate) external onlyOwner {
         maxBorrowRate = rate;
 
         emit MaxBorrowRateSet(rate);
     }
 
-    function setMinBorrowRate(int256 rate) external {
+    function setMinBorrowRate(int256 rate) external onlyOwner {
         minBorrowRate = rate;
 
         emit MinBorrowRateSet(rate);

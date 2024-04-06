@@ -2,10 +2,10 @@
 pragma solidity ^0.8.18;
 
 // import ownable.sol
-import "openzeppelin/access/Ownable.sol";
+import "openzeppelin/access/Ownable2Step.sol";
 import "src/interfaces/IController.sol";
 
-contract Controller is Ownable, IController {
+contract Controller is Ownable2Step, IController {
     mapping(address => bool) public isTradePair;
     mapping(address => bool) public isLiquidityPool;
 
